@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Playground · Lia Gong</title>
+  <meta name="description" content="Experiments in vibe coding, pure art, and video editing by Lia Gong.">
+
+  <!-- Design tokens — single source of truth at project root -->
+  <link rel="stylesheet" href="colors_and_type.css">
+
+  <!-- Preload both row covers so each gallery's first frame paints
+       immediately, regardless of which sibling .jpg finishes first. -->
+  <link rel="preload" as="image" href="art/art-00-cover.jpg"   fetchpriority="high">
+  <link rel="preload" as="image" href="art/inst-00-cover.jpg"  fetchpriority="high">
+
+  <!-- (OGL imported as ES module inside the gallery script below) -->
+
+
+  <style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+  overflow-x: hidden;
+  cursor: none;
+}
+a { color: inherit; text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 100%; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 48px;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition:
+    top 0.45s var(--ease-out),
+    max-width 0.45s var(--ease-out),
+    padding 0.45s var(--ease-out),
+    background 0.45s var(--ease-out),
+    border-radius 0.45s var(--ease-out),
+    border-color 0.45s var(--ease-out),
+    box-shadow 0.45s var(--ease-out),
+    gap 0.45s var(--ease-out);
+}
+.nav.scrolled {
+  top: 14px;
+  width: fit-content;
+  max-width: 560px;
+  padding: 9px 14px;
+  gap: 16px;
+  justify-content: flex-start;
+  background: var(--chrome-glass-strong);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-radius: 999px;
+  border-color: var(--tint-2);
+  box-shadow: 0 0 0 1px var(--tint-1), 0 8px 32px rgba(0,0,0,0.55);
+}
+
+/* Logo glass — same recipe as .pill-btn: dark gradient base, layered pill
+   shadow for the rim/glow, sweep shimmer on hover. Keeps brand consistency
+   between the nav corner and the CTA buttons.                              */
+.nav-logo {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; text-decoration: none;
+  width: 38px; height: 38px;
+  background: var(--btn-bg);
+  border-radius: 50%;
+  box-shadow: var(--shadow-pill);
+  position: relative; overflow: hidden;
+  transition: box-shadow var(--dur-base) var(--ease-out),
+              transform   var(--dur-fast) var(--ease-out);
+}
+.nav-logo::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 35%, var(--tint-2) 50%, transparent 65%);
+  transform: translateX(-100%);
+  transition: transform 0.55s var(--ease-out);
+  pointer-events: none;
+}
+.nav-logo:hover { box-shadow: var(--shadow-pill-glow); }
+.nav-logo:hover::before { transform: translateX(120%); }
+.nav-logo:active { transform: scale(0.97); }
+.nav-logo img { display: block; position: relative; z-index: 1; }
+.nav-divider {
+  width: 1px; height: 16px;
+  background: var(--tint-4);
+  flex-shrink: 0;
+  margin: 0 8px;
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-out);
+}
+.nav.scrolled .nav-divider { opacity: 1; }
+
+.nav-right { display: flex; align-items: center; gap: 20px; }
+.nav-links { display: flex; gap: 4px; list-style: none; position: relative; }
+.nav-links li { position: relative; z-index: 1; }
+.nav-links a {
+  display: block; padding: 5px 10px;
+  font-size: 13.5px; font-weight: 500; color: var(--ink); letter-spacing: -0.005em;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+/* pill handles all states — no color shift on active */
+.nav-links a:hover,
+.nav-links a.active { text-decoration: none; }
+
+/* sliding pill indicator */
+.nav-indicator {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: var(--tint-2);
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+  transition: left 0.28s cubic-bezier(0.22,1,0.36,1),
+              width 0.28s cubic-bezier(0.22,1,0.36,1),
+              opacity 0.18s;
+  z-index: 0;
+}
+.nav-indicator.visible { opacity: 1; }
+
+/* ============================================================
+   CUSTOM CURSOR
+   ============================================================ */
+.cursor-dot {
+  width: 20px; height: 20px;
+  background: var(--accent);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 10001;
+  transform: translate(-50%, -50%);
+  transition: width 0.18s var(--ease-out), height 0.18s var(--ease-out), opacity 0.18s;
+}
+.cursor-ring { display: none; }
+body.cur-hover .cursor-dot { width: 30px; height: 30px; }
+body.cur-click .cursor-dot { width: 10px; height: 10px; }
+
+/* ============================================================
+   PAGE HEADER  +  AURORA BACKDROP
+   .pg-hero is the full-bleed positioning context (mirrors landing's
+   .hero / #hero-flow pattern). Aurora canvas sits absolute behind the
+   text, text content stacks above via z-index.
+   ============================================================ */
+.pg-hero {
+  position: relative;
+  overflow: hidden;
+}
+.aurora-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.65;  /* matches landing's #hero-flow opacity */
+}
+.aurora-bg canvas { display: block; width: 100% !important; height: 100% !important; }
+.pg-header {
+  position: relative;
+  z-index: 1;
+  padding: 160px 60px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  /* No bottom padding — next section (.art-gallery) owns the gap via margin-top */
+}
+.pg-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 16px;
+}
+/* Typography from .h-display + --fs-lede (system defaults) — only spacing here. */
+.pg-title { margin-bottom: 20px; }
+
+.pg-desc {
+  font-size: var(--fs-lede);
+  font-weight: 400;
+  color: var(--ink-2);
+  max-width: 46ch;
+  line-height: 1.65;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   ART GALLERY  (CircularGallery — WebGL via OGL)
+   Horizontal scrollable carousel below the intro. Drag / wheel to scroll.
+   ============================================================ */
+.art-gallery {
+  height: 600px;
+  max-width: 1200px;
+  /* Vertical spacing comes from the 4px scale: var(--s-9) = 96px above/below */
+  margin: var(--s-9) auto;
+  padding: 0 60px;
+  position: relative;
+}
+/* (Previously had .art-gallery--landscape and adjacency overrides for a
+   second row — now both series live in one carousel, so the single row
+   uses the default margin: var(--s-9) auto.)                            */
+.circular-gallery {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+}
+.circular-gallery:active { cursor: grabbing; }
+.circular-gallery canvas { display: block; }
+
+/* Gallery nav buttons — same glass recipe as .nav-logo and .pill-btn.
+   Positioned at the left/right edges of the gallery, centered vertically.  */
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 40px; height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--btn-bg);
+  border: none;
+  border-radius: 50%;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: var(--shadow-pill);
+  transition: box-shadow var(--dur-base) var(--ease-out),
+              transform   var(--dur-fast) var(--ease-out),
+              color       var(--dur-fast) var(--ease-out);
+}
+.gallery-nav:hover { box-shadow: var(--shadow-pill-glow); color: var(--accent); }
+.gallery-nav:active { transform: translateY(-50%) scale(0.95); }
+.gallery-nav--prev { left: var(--s-3); }   /* 12px from edge */
+.gallery-nav--next { right: var(--s-3); }
+.gallery-nav svg { display: block; }
+
+/* ============================================================
+   SCROLL REVEAL
+   ============================================================ */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.65s var(--ease-out), transform 0.65s var(--ease-out); }
+.reveal.visible { opacity: 1; transform: none; }
+.reveal-delay-1 { transition-delay: 60ms; }
+.reveal-delay-2 { transition-delay: 120ms; }
+.reveal-delay-3 { transition-delay: 180ms; }
+.reveal-delay-4 { transition-delay: 240ms; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer-outer {
+  background: transparent;
+  position: relative;
+}
+.footer {
+  padding: 32px 48px 44px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 16px;
+  max-width: 1060px; margin: 0 auto; width: 100%;
+  position: relative; z-index: 1;
+}
+.footer-copy { font-size: 13px; color: var(--ink-2); letter-spacing: -0.01em; }
+.footer-nav { display: flex; gap: 28px; list-style: none; }
+.footer-nav a { font-size: 13px; color: var(--ink-2); letter-spacing: -0.01em; transition: color var(--dur-fast) var(--ease-out); }
+.footer-nav a:hover { color: var(--ink); }
+.footer-social { display: flex; gap: 20px; }
+.footer-social a { font-size: 13px; color: var(--ink-2); letter-spacing: -0.01em; text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+.footer-social a:hover { color: var(--ink); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .pg-header { padding: 120px 24px 0; }
+  .art-gallery { padding: 0 24px; height: 480px; }
+  .footer { flex-direction: column; gap: 18px; padding: 24px 24px 36px; text-align: center; }
+  .footer-social { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     NAV
+     ============================================================ -->
+<header class="nav" id="nav">
+  <a href="landing.html" class="nav-logo" aria-label="Lia Gong home">
+    <img src="logo1.svg" alt="Lia Gong" width="14" height="20">
+  </a>
+  <span class="nav-divider" aria-hidden="true"></span>
+  <div class="nav-right">
+    <ul class="nav-links">
+      <span class="nav-indicator" aria-hidden="true"></span>
+      <li><a href="landing.html#work">Work</a></li>
+      <li><a href="playground.html" class="active">Playground</a></li>
+      <li><a href="landing.html#about">About</a></li>
+      <li><a href="landing.html#contact">Contact</a></li>
+    </ul>
+  </div>
+</header>
+
+
+<!-- ============================================================
+     PAGE HEADER
+     ============================================================ -->
+<section class="pg-hero">
+  <div class="aurora-bg" id="aurora-bg" aria-hidden="true"></div>
+  <div class="pg-header reveal">
+    <h1 class="pg-title h-display">Welcome to the playground.</h1>
+    <p class="pg-desc">A collection of things I've made along the way, vibe&#8209;coded&nbsp;experiments, prompts I've played with, artworks, edits, and other side quests. Some polished, some not. All made out of curiosity.</p>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     ART GALLERY  —  unified row: both series in one carousel
+     ============================================================ -->
+<section class="art-gallery reveal reveal-delay-1" aria-label="Art gallery">
+  <div class="circular-gallery" id="art-gallery"></div>
+  <button class="gallery-nav gallery-nav--prev" aria-label="Previous artwork" type="button">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 2L4 7l5 5"/>
+    </svg>
+  </button>
+  <button class="gallery-nav gallery-nav--next" aria-label="Next artwork" type="button">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 2l5 5-5 5"/>
+    </svg>
+  </button>
+</section>
+
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<div class="footer-outer">
+  <footer class="footer">
+    <span class="footer-copy">© 2026 Lia Gong</span>
+    <ul class="footer-nav">
+      <li><a href="landing.html#work">Work</a></li>
+      <li><a href="landing.html#about">About</a></li>
+      <li><a href="playground.html">Playground</a></li>
+    </ul>
+    <div class="footer-social">
+      <a href="mailto:hello@lia.design">↗ Email</a>
+      <a href="https://linkedin.com" target="_blank" rel="noopener">↗ LinkedIn</a>
+    </div>
+  </footer>
+</div>
+
+
+<!-- Cursor -->
+<div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursor-ring" aria-hidden="true"></div>
+
+
+<!-- ============================================================
+     JS
+     ============================================================ -->
+<script>
+(function () {
+
+  /* ---- nav shrink on scroll ---- */
+  var nav = document.getElementById("nav");
+  window.addEventListener("scroll", function () {
+    nav.classList.toggle("scrolled", window.scrollY > 40);
+  }, { passive: true });
+
+  /* ---- custom cursor ---- */
+  var dot  = document.getElementById("cursor-dot");
+  var mouseX = 0, mouseY = 0;
+
+  if (!('ontouchstart' in window)) {
+    document.addEventListener("mousemove", function (e) {
+      mouseX = e.clientX; mouseY = e.clientY;
+      dot.style.left = mouseX + "px";
+      dot.style.top  = mouseY + "px";
+    });
+    document.addEventListener("mousedown", function () { document.body.classList.add("cur-click"); });
+    document.addEventListener("mouseup",   function () { document.body.classList.remove("cur-click"); });
+    document.querySelectorAll("a, button").forEach(function (el) {
+      el.addEventListener("mouseenter", function () { document.body.classList.add("cur-hover"); });
+      el.addEventListener("mouseleave", function () { document.body.classList.remove("cur-hover"); });
+    });
+  } else {
+    dot.style.display = "none";
+    document.body.style.cursor = "";
+  }
+
+  /* ---- nav: mark active link ---- */
+  document.querySelectorAll(".nav-links a").forEach(function (a) {
+    if (a.href === window.location.href) a.classList.add("active");
+  });
+
+  /* ---- nav sliding pill indicator ---- */
+  var navList   = document.querySelector(".nav-links");
+  var indicator = document.querySelector(".nav-indicator");
+  var navLinks  = document.querySelectorAll(".nav-links a");
+
+  function placeIndicator(el) {
+    if (!el || !indicator || !navList) return;
+    var lr = navList.getBoundingClientRect();
+    var er = el.getBoundingClientRect();
+    indicator.style.left  = (er.left - lr.left) + "px";
+    indicator.style.width = er.width + "px";
+    indicator.classList.add("visible");
+  }
+
+  /* hover: pill follows cursor; mouseleave: snap back to active */
+  navLinks.forEach(function (a) {
+    a.addEventListener("mouseenter", function () { placeIndicator(a); });
+  });
+  if (navList) {
+    navList.addEventListener("mouseleave", function () {
+      placeIndicator(navList.querySelector("a.active"));
+    });
+  }
+
+  /* init: place on active link as soon as DOM is ready */
+  (function initIndicator() {
+    var first = navList && (navList.querySelector("a.active") || navList.querySelector("a"));
+    if (first) placeIndicator(first);
+  })();
+
+  /* ---- scroll reveal ---- */
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add("visible"); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.06 });
+  document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+
+
+})();
+</script>
+
+
+<!-- ============================================================
+     CIRCULAR GALLERY  (vanilla port of React Bits CircularGallery)
+     ES module so we can import OGL from esm.sh (no UMD build available).
+     Horizontal WebGL carousel — drag or wheel to scroll.
+     ============================================================ -->
+<script type="module">
+import { Camera, Color, Mesh, Plane, Program, Renderer, Texture, Transform, Triangle } from "https://esm.sh/ogl@1.0.11";
+
+/* ============================================================
+   AURORA  (vanilla port of React Bits Aurora — full-bleed gradient
+   shader behind the hero text. Reads color stops from CSS custom
+   properties so it auto-tracks any --accent token changes.)
+   ============================================================ */
+(function initAurora() {
+  var container = document.getElementById("aurora-bg");
+  if (!container) return;
+
+  // Pull the 3 brand colors from CSS custom properties — so a one-knob
+  // change to --accent / --accent-deep / --accent-2 also restyles the aurora.
+  var root = getComputedStyle(document.documentElement);
+  var colorStops = [
+    root.getPropertyValue("--accent").trim()      || "#487FA7",
+    root.getPropertyValue("--accent-deep").trim() || "#152862",
+    root.getPropertyValue("--accent-2").trim()    || "#6d84a3"  // matches landing's hero-flow color3
+  ];
+  var AMPLITUDE = 1.0;
+  var BLEND     = 0.31;
+  var SPEED     = 0.8;
+
+  var VERT = "#version 300 es\nin vec2 position;\nvoid main(){gl_Position=vec4(position,0.0,1.0);}";
+  var FRAG = [
+    "#version 300 es",
+    "precision highp float;",
+    "uniform float uTime;",
+    "uniform float uAmplitude;",
+    "uniform vec3 uColorStops[3];",
+    "uniform vec2 uResolution;",
+    "uniform float uBlend;",
+    "out vec4 fragColor;",
+    "vec3 permute(vec3 x){return mod(((x*34.0)+1.0)*x,289.0);}",
+    "float snoise(vec2 v){",
+    "  const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);",
+    "  vec2 i=floor(v+dot(v,C.yy));",
+    "  vec2 x0=v-i+dot(i,C.xx);",
+    "  vec2 i1=(x0.x>x0.y)?vec2(1.0,0.0):vec2(0.0,1.0);",
+    "  vec4 x12=x0.xyxy+C.xxzz; x12.xy-=i1;",
+    "  i=mod(i,289.0);",
+    "  vec3 p=permute(permute(i.y+vec3(0.0,i1.y,1.0))+i.x+vec3(0.0,i1.x,1.0));",
+    "  vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);",
+    "  m=m*m; m=m*m;",
+    "  vec3 x=2.0*fract(p*C.www)-1.0;",
+    "  vec3 h=abs(x)-0.5;",
+    "  vec3 ox=floor(x+0.5);",
+    "  vec3 a0=x-ox;",
+    "  m*=1.79284291400159-0.85373472095314*(a0*a0+h*h);",
+    "  vec3 g;",
+    "  g.x=a0.x*x0.x+h.x*x0.y;",
+    "  g.yz=a0.yz*x12.xz+h.yz*x12.yw;",
+    "  return 130.0*dot(m,g);",
+    "}",
+    "struct ColorStop { vec3 color; float position; };",
+    "#define COLOR_RAMP(colors,factor,finalColor) {           \\",
+    "  int index=0;                                            \\",
+    "  for(int i=0;i<2;i++){                                   \\",
+    "    ColorStop currentColor=colors[i];                     \\",
+    "    bool isInBetween=currentColor.position<=factor;       \\",
+    "    index=int(mix(float(index),float(i),float(isInBetween))); \\",
+    "  }                                                       \\",
+    "  ColorStop currentColor=colors[index];                   \\",
+    "  ColorStop nextColor=colors[index+1];                    \\",
+    "  float range=nextColor.position-currentColor.position;   \\",
+    "  float lerpFactor=(factor-currentColor.position)/range;  \\",
+    "  finalColor=mix(currentColor.color,nextColor.color,lerpFactor); \\",
+    "}",
+    "void main(){",
+    "  vec2 uv=gl_FragCoord.xy/uResolution;",
+    "  ColorStop colors[3];",
+    "  colors[0]=ColorStop(uColorStops[0],0.0);",
+    "  colors[1]=ColorStop(uColorStops[1],0.5);",
+    "  colors[2]=ColorStop(uColorStops[2],1.0);",
+    "  vec3 rampColor;",
+    "  COLOR_RAMP(colors,uv.x,rampColor);",
+    "  float height=snoise(vec2(uv.x*2.0+uTime*0.1,uTime*0.25))*0.5*uAmplitude;",
+    "  height=exp(height);",
+    "  height=(uv.y*2.0-height+0.2);",
+    "  float intensity=0.6*height;",
+    "  float midPoint=0.20;",
+    "  float auroraAlpha=smoothstep(midPoint-uBlend*0.5,midPoint+uBlend*0.5,intensity);",
+    "  vec3 auroraColor=intensity*rampColor;",
+    "  fragColor=vec4(auroraColor*auroraAlpha,auroraAlpha);",
+    "}"
+  ].join("\n");
+
+  var renderer = new Renderer({ alpha: true, premultipliedAlpha: true, antialias: true });
+  var gl = renderer.gl;
+  gl.clearColor(0, 0, 0, 0);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.canvas.style.backgroundColor = "transparent";
+
+  var geometry = new Triangle(gl);
+  if (geometry.attributes.uv) delete geometry.attributes.uv;
+
+  var stops = colorStops.map(function (hex) {
+    var c = new Color(hex);
+    return [c.r, c.g, c.b];
+  });
+
+  var program = new Program(gl, {
+    vertex: VERT,
+    fragment: FRAG,
+    uniforms: {
+      uTime:       { value: 0 },
+      uAmplitude:  { value: AMPLITUDE },
+      uColorStops: { value: stops },
+      uResolution: { value: [container.offsetWidth, container.offsetHeight] },
+      uBlend:      { value: BLEND }
+    }
+  });
+
+  var mesh = new Mesh(gl, { geometry: geometry, program: program });
+  container.appendChild(gl.canvas);
+
+  function resize() {
+    var w = container.offsetWidth, h = container.offsetHeight;
+    if (w <= 0 || h <= 0) return;
+    renderer.setSize(w, h);
+    program.uniforms.uResolution.value = [w, h];
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  function update(t) {
+    var time = t * 0.01;
+    program.uniforms.uTime.value = time * SPEED * 0.1;
+    renderer.render({ scene: mesh });
+    requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+})();
+
+
+// CircularGallery — class library + mountGallery helper. Allows multiple
+// independent gallery rows on one page (e.g. paintings + installations).
+(function () {
+  function debounce(fn, wait) {
+    var t;
+    return function () { var args = arguments, self = this;
+      clearTimeout(t); t = setTimeout(function () { fn.apply(self, args); }, wait);
+    };
+  }
+  function lerp(p1, p2, t) { return p1 + (p2 - p1) * t; }
+  function autoBind(instance) {
+    var proto = Object.getPrototypeOf(instance);
+    Object.getOwnPropertyNames(proto).forEach(function (key) {
+      if (key !== "constructor" && typeof instance[key] === "function") {
+        instance[key] = instance[key].bind(instance);
+      }
+    });
+  }
+  function createTextTexture(gl, text, font, color) {
+    var canvas = document.createElement("canvas");
+    var ctx = canvas.getContext("2d");
+    ctx.font = font;
+    var metrics = ctx.measureText(text);
+    // Extract size via regex — parseInt(font) returns the weight (e.g. "500"),
+    // not the px size, when the shorthand has a leading numeric weight.
+    var sizeMatch = font.match(/(\d+)\s*px/);
+    var sizePx = sizeMatch ? parseInt(sizeMatch[1], 10) : 16;
+    var w = Math.ceil(metrics.width), h = Math.ceil(sizePx * 1.2);
+    canvas.width = w + 20; canvas.height = h + 20;
+    ctx.font = font; ctx.fillStyle = color;
+    ctx.textBaseline = "middle"; ctx.textAlign = "center";
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+    var tex = new Texture(gl, { generateMipmaps: false });
+    tex.image = canvas;
+    return { texture: tex, width: canvas.width, height: canvas.height };
+  }
+
+  function Title(opts) {
+    this.gl = opts.gl; this.plane = opts.plane; this.renderer = opts.renderer;
+    this.text = opts.text; this.textColor = opts.textColor || "#545050";
+    this.font = opts.font || "30px sans-serif";
+    var t = createTextTexture(this.gl, this.text, this.font, this.textColor);
+    var geometry = new Plane(this.gl);
+    var program = new Program(this.gl, {
+      vertex:   "attribute vec3 position;attribute vec2 uv;uniform mat4 modelViewMatrix;uniform mat4 projectionMatrix;varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
+      fragment: "precision highp float;uniform sampler2D tMap;varying vec2 vUv;void main(){vec4 c=texture2D(tMap,vUv);if(c.a<0.1)discard;gl_FragColor=c;}",
+      uniforms: { tMap: { value: t.texture } },
+      transparent: true
+    });
+    this.mesh = new Mesh(this.gl, { geometry: geometry, program: program });
+    var aspect = t.width / t.height;
+    // Caption visual size relative to plane height. 0.15 reads as a subtitle;
+    // 0.10 reads as a small caption (~12px on typical viewport).
+    var textH = this.plane.scale.y * 0.10;
+    this.mesh.scale.set(textH * aspect, textH, 1);
+    this.mesh.position.y = -this.plane.scale.y * 0.5 - textH * 0.5 - 0.05;
+    this.mesh.setParent(this.plane);
+  }
+
+  function Media(opts) {
+    this.extra = 0;
+    this.geometry = opts.geometry; this.gl = opts.gl; this.image = opts.image;
+    this.index = opts.index; this.length = opts.length; this.renderer = opts.renderer;
+    this.scene = opts.scene; this.screen = opts.screen; this.text = opts.text;
+    this.viewport = opts.viewport; this.bend = opts.bend; this.textColor = opts.textColor;
+    this.borderRadius = opts.borderRadius || 0; this.font = opts.font;
+    // Configurable plane aspect — defaults to portrait 700×900 (paintings).
+    // Pass landscape values (e.g. 1300×800) for horizontal media like installations.
+    this.itemWidth  = opts.itemWidth  || 700;
+    this.itemHeight = opts.itemHeight || 900;
+    this.createShader(); this.createMesh(); this.createTitle(); this.onResize();
+  }
+  Media.prototype.createShader = function () {
+    var texture = new Texture(this.gl, { generateMipmaps: true });
+    var self = this;
+    this.program = new Program(this.gl, {
+      depthTest: false, depthWrite: false,
+      vertex:
+        "precision highp float;attribute vec3 position;attribute vec2 uv;" +
+        "uniform mat4 modelViewMatrix;uniform mat4 projectionMatrix;" +
+        "uniform float uTime;uniform float uSpeed;varying vec2 vUv;" +
+        "void main(){vUv=uv;vec3 p=position;" +
+        "p.z=(sin(p.x*4.0+uTime)*1.5+cos(p.y*2.0+uTime)*1.5)*(0.1+uSpeed*0.5);" +
+        "gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);}",
+      fragment:
+        "precision highp float;uniform vec2 uImageSizes;uniform vec2 uPlaneSizes;" +
+        "uniform sampler2D tMap;uniform float uBorderRadius;varying vec2 vUv;" +
+        "float roundedBoxSDF(vec2 p,vec2 b,float r){vec2 d=abs(p)-b;return length(max(d,vec2(0.0)))+min(max(d.x,d.y),0.0)-r;}" +
+        "void main(){vec2 ratio=vec2(min((uPlaneSizes.x/uPlaneSizes.y)/(uImageSizes.x/uImageSizes.y),1.0),min((uPlaneSizes.y/uPlaneSizes.x)/(uImageSizes.y/uImageSizes.x),1.0));" +
+        "vec2 uv=vec2(vUv.x*ratio.x+(1.0-ratio.x)*0.5,vUv.y*ratio.y+(1.0-ratio.y)*0.5);" +
+        "vec4 color=texture2D(tMap,uv);" +
+        "float d=roundedBoxSDF(vUv-0.5,vec2(0.5-uBorderRadius),uBorderRadius);" +
+        "float edgeSmooth=0.002;float alpha=1.0-smoothstep(-edgeSmooth,edgeSmooth,d);" +
+        "gl_FragColor=vec4(color.rgb,alpha);}",
+      uniforms: {
+        tMap: { value: texture },
+        uPlaneSizes: { value: [0, 0] },
+        uImageSizes: { value: [0, 0] },
+        uSpeed: { value: 0 },
+        uTime: { value: 100 * Math.random() },
+        uBorderRadius: { value: this.borderRadius }
+      },
+      transparent: true
+    });
+    var img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = this.image;
+    img.onload = function () {
+      texture.image = img;
+      self.program.uniforms.uImageSizes.value = [img.naturalWidth, img.naturalHeight];
+    };
+  };
+  Media.prototype.createMesh = function () {
+    this.plane = new Mesh(this.gl, { geometry: this.geometry, program: this.program });
+    this.plane.setParent(this.scene);
+  };
+  Media.prototype.createTitle = function () {
+    this.title = new Title({
+      gl: this.gl, plane: this.plane, renderer: this.renderer,
+      text: this.text, textColor: this.textColor, font: this.font
+    });
+  };
+  Media.prototype.update = function (scroll, direction) {
+    this.plane.position.x = this.x - scroll.current - this.extra;
+    var x = this.plane.position.x;
+    var H = this.viewport.width / 2;
+    if (this.bend === 0) {
+      this.plane.position.y = 0; this.plane.rotation.z = 0;
+    } else {
+      var B = Math.abs(this.bend);
+      var R = (H * H + B * B) / (2 * B);
+      var ex = Math.min(Math.abs(x), H);
+      var arc = R - Math.sqrt(R * R - ex * ex);
+      if (this.bend > 0) {
+        this.plane.position.y = -arc;
+        this.plane.rotation.z = -Math.sign(x) * Math.asin(ex / R);
+      } else {
+        this.plane.position.y = arc;
+        this.plane.rotation.z = Math.sign(x) * Math.asin(ex / R);
+      }
+    }
+    this.speed = scroll.current - scroll.last;
+    this.program.uniforms.uTime.value += 0.04;
+    this.program.uniforms.uSpeed.value = this.speed;
+    var po = this.plane.scale.x / 2, vo = this.viewport.width / 2;
+    this.isBefore = this.plane.position.x + po < -vo;
+    this.isAfter  = this.plane.position.x - po >  vo;
+    if (direction === "right" && this.isBefore) { this.extra -= this.widthTotal; this.isBefore = this.isAfter = false; }
+    if (direction === "left"  && this.isAfter ) { this.extra += this.widthTotal; this.isBefore = this.isAfter = false; }
+  };
+  Media.prototype.onResize = function (o) {
+    o = o || {};
+    if (o.screen) this.screen = o.screen;
+    if (o.viewport) {
+      this.viewport = o.viewport;
+      if (this.plane.program.uniforms.uViewportSizes) {
+        this.plane.program.uniforms.uViewportSizes.value = [this.viewport.width, this.viewport.height];
+      }
+    }
+    this.scale = this.screen.height / 1500;
+    this.plane.scale.y = (this.viewport.height * (this.itemHeight * this.scale)) / this.screen.height;
+    this.plane.scale.x = (this.viewport.width  * (this.itemWidth  * this.scale)) / this.screen.width;
+    this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
+    this.padding = 2;
+    this.width = this.plane.scale.x + this.padding;
+    // NOTE: this.x and this.widthTotal used to be set here via "width × index"
+    // which assumed all items share the same plane width. For mixed aspects
+    // (portrait + landscape in one row) that's wrong — caused different
+    // items to wrap to different positions and stack on top of each other.
+    // Positions are now computed cumulatively by App.recalcLayout().
+  };
+
+  function App(container, opts) {
+    opts = opts || {};
+    autoBind(this);
+    this.container = container;
+    this.scrollSpeed = opts.scrollSpeed != null ? opts.scrollSpeed : 2;
+    this.scroll = { ease: opts.scrollEase != null ? opts.scrollEase : 0.05, current: 0, target: 0, last: 0 };
+    this.onCheckDebounce = debounce(this.onCheck.bind(this), 200);
+    this.createRenderer();
+    this.createCamera();
+    this.createScene();
+    this.onResize();
+    this.createGeometry();
+    this.itemWidth  = opts.itemWidth;
+    this.itemHeight = opts.itemHeight;
+    this.createMedias(opts.items, opts.bend, opts.textColor, opts.borderRadius, opts.font);
+    this.recalcLayout();
+
+    // Position the cover (index 0) flush against the LEFT edge of the
+    // viewport. Shift amount is responsive — at narrow viewports where one
+    // item already fills the screen, shift is ~0 (cover stays centered).
+    // At wide viewports, shift = half the empty space, pushing the cover
+    // to the left so no looped item appears before it.
+    if (this.medias && this.medias[0]) {
+      var itemW = this.medias[0].width;
+      var shift = Math.max(0, (this.viewport.width - itemW) / 2);
+      this.scroll.current = shift;
+      this.scroll.target  = shift;
+      this.scroll.last    = shift;
+    }
+
+    this.update();
+    this.addEventListeners();
+  }
+  App.prototype.createRenderer = function () {
+    this.renderer = new Renderer({
+      alpha: true, antialias: true,
+      dpr: Math.min(window.devicePixelRatio || 1, 2)
+    });
+    this.gl = this.renderer.gl;
+    this.gl.clearColor(0, 0, 0, 0);
+    this.container.appendChild(this.gl.canvas);
+  };
+  App.prototype.createCamera = function () {
+    this.camera = new Camera(this.gl); this.camera.fov = 45; this.camera.position.z = 20;
+  };
+  App.prototype.createScene = function () { this.scene = new Transform(); };
+  App.prototype.createGeometry = function () {
+    this.planeGeometry = new Plane(this.gl, { heightSegments: 50, widthSegments: 100 });
+  };
+  App.prototype.createMedias = function (items, bend, textColor, borderRadius, font) {
+    bend = bend != null ? bend : 1;
+    // Items must be supplied by the caller (mountGallery). No baked-in defaults.
+    var gallery = items && items.length ? items : [];
+    if (!gallery.length) return;
+    this.mediasImages = gallery.concat(gallery);
+    var self = this;
+    this.medias = this.mediasImages.map(function (data, index) {
+      return new Media({
+        geometry: self.planeGeometry, gl: self.gl, image: data.image,
+        index: index, length: self.mediasImages.length, renderer: self.renderer,
+        scene: self.scene, screen: self.screen, text: data.text,
+        viewport: self.viewport, bend: bend, textColor: textColor,
+        borderRadius: borderRadius, font: font,
+        // Per-item aspect override (for mixed portrait + landscape rows).
+        // Falls back to App-level config, then Media constructor defaults.
+        itemWidth:  data.itemWidth  || self.itemWidth,
+        itemHeight: data.itemHeight || self.itemHeight
+      });
+    });
+  };
+  App.prototype.onTouchDown = function (e) {
+    this.isDown = true;
+    this.scroll.position = this.scroll.current;
+    this.start = e.touches ? e.touches[0].clientX : e.clientX;
+  };
+  App.prototype.onTouchMove = function (e) {
+    if (!this.isDown) return;
+    var x = e.touches ? e.touches[0].clientX : e.clientX;
+    var distance = (this.start - x) * (this.scrollSpeed * 0.025);
+    this.scroll.target = this.scroll.position + distance;
+  };
+  App.prototype.onTouchUp = function () { this.isDown = false; this.onCheck(); };
+  App.prototype.onWheel = function (e) {
+    var delta = e.deltaY || e.wheelDelta || e.detail;
+    this.scroll.target += (delta > 0 ? this.scrollSpeed : -this.scrollSpeed) * 0.2;
+    this.onCheckDebounce();
+  };
+  App.prototype.onCheck = function () {
+    if (!this.medias || !this.medias[0]) return;
+    var width = this.medias[0].width;
+    var itemIndex = Math.round(Math.abs(this.scroll.target) / width);
+    var item = width * itemIndex;
+    this.scroll.target = this.scroll.target < 0 ? -item : item;
+  };
+  App.prototype.onResize = function () {
+    this.screen = { width: this.container.clientWidth, height: this.container.clientHeight };
+    this.renderer.setSize(this.screen.width, this.screen.height);
+    this.camera.perspective({ aspect: this.screen.width / this.screen.height });
+    var fov = (this.camera.fov * Math.PI) / 180;
+    var height = 2 * Math.tan(fov / 2) * this.camera.position.z;
+    var width = height * this.camera.aspect;
+    this.viewport = { width: width, height: height };
+    if (this.medias) {
+      var self = this;
+      this.medias.forEach(function (m) { m.onResize({ screen: self.screen, viewport: self.viewport }); });
+      this.recalcLayout();
+    }
+  };
+
+  // Cumulative layout — handles items of mixed widths in one carousel.
+  // Each item.x is the center position; widthTotal is summed across all items.
+  App.prototype.recalcLayout = function () {
+    if (!this.medias || !this.medias.length) return;
+    var padding = 2;
+    var cum = 0;
+    for (var i = 0; i < this.medias.length; i++) {
+      var m = this.medias[i];
+      var w = m.plane.scale.x;
+      if (i === 0) {
+        m.x = 0;
+      } else {
+        var prev = this.medias[i - 1];
+        m.x = prev.x + (prev.plane.scale.x + w) / 2 + padding;
+      }
+      m.width = w + padding;
+      cum += w + padding;
+    }
+    for (var j = 0; j < this.medias.length; j++) {
+      this.medias[j].widthTotal = cum;
+    }
+  };
+  App.prototype.update = function () {
+    this.scroll.current = lerp(this.scroll.current, this.scroll.target, this.scroll.ease);
+    var direction = this.scroll.current > this.scroll.last ? "right" : "left";
+    if (this.medias) this.medias.forEach(function (m) { m.update(this.scroll, direction); }, this);
+    this.renderer.render({ scene: this.scene, camera: this.camera });
+    this.scroll.last = this.scroll.current;
+    this.raf = window.requestAnimationFrame(this.update.bind(this));
+  };
+  App.prototype.addEventListeners = function () {
+    window.addEventListener("resize", this.onResize);
+    window.addEventListener("wheel", this.onWheel);
+    window.addEventListener("mousedown", this.onTouchDown);
+    window.addEventListener("mousemove", this.onTouchMove);
+    window.addEventListener("mouseup", this.onTouchUp);
+    window.addEventListener("touchstart", this.onTouchDown);
+    window.addEventListener("touchmove", this.onTouchMove);
+    window.addEventListener("touchend", this.onTouchUp);
+  };
+
+  // Read text color from the design token (one-knob theming compatible).
+  var rootStyle = getComputedStyle(document.documentElement);
+  var inkColor  = rootStyle.getPropertyValue("--ink").trim() || "#ffffff";
+
+  // ──────────────────────────────────────────────────────────────
+  // Mount helper — call once per gallery row. Waits for Geist to load
+  // before creating canvas text textures so font fallback never happens.
+  // ──────────────────────────────────────────────────────────────
+  function mountGallery(containerId, opts) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    document.fonts.ready.then(function () {
+      var defaults = {
+        bend: 0,
+        textColor: inkColor,
+        borderRadius: 0.07,
+        scrollSpeed: 2,
+        scrollEase: 0.1,
+        font: "400 12px Geist, sans-serif"  // body weight = caption-style
+      };
+      var merged = Object.assign({}, defaults, opts);
+      var app = new App(container, merged);
+
+      // Wire prev / next buttons if present in the parent section.
+      var section = container.closest(".art-gallery") || container;
+      var prev = section.querySelector(".gallery-nav--prev");
+      var next = section.querySelector(".gallery-nav--next");
+      function step(dir) {
+        if (!app.medias || !app.medias.length) return;
+        // Move scroll target by the current centered item's width — works
+        // for mixed-aspect rows (portrait ↔ landscape).
+        var w = app.medias[0].width || 5;
+        app.scroll.target += dir * w;
+      }
+      if (prev) prev.addEventListener("click", function () { step(-1); });
+      if (next) next.addEventListener("click", function () { step( 1); });
+    });
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // Single unified gallery — two series in one carousel. Each cover image
+  // (hand-lettered FIGURA SPIRITUALE / PAESAGGIO FLUIDO) acts as a visual
+  // chapter break between series. Items carry their own aspect via
+  // itemWidth/itemHeight so paintings (portrait) and installations
+  // (landscape) coexist naturally.
+  // ──────────────────────────────────────────────────────────────
+  var PAINTING_CAPTION = "Figura spirituale, Acrylic, 50 × 70 cm";
+  var INSTALL_CAPTION  = "Paesaggio fluido, Mixed media, 73 × 220 cm";
+  var P = { itemWidth: 700,  itemHeight: 900 };   // portrait aspect
+  var L = { itemWidth: 1300, itemHeight: 800 };   // landscape aspect
+
+  mountGallery("art-gallery", {
+    scrollSpeed: 3,      // slightly faster than the previous 2
+    scrollEase:  0.12,   // a touch snappier than the previous 0.10 → 0.12 reads as energetic
+    items: [
+      // Series 1 — Figura spirituale (portrait paintings)
+      Object.assign({ image: "art/art-00-cover.jpg", text: "Figura spirituale series" }, P),
+      Object.assign({ image: "art/art-01.jpg",       text: PAINTING_CAPTION }, P),
+      Object.assign({ image: "art/art-02.jpg",       text: PAINTING_CAPTION }, P),
+      Object.assign({ image: "art/art-03.jpg",       text: PAINTING_CAPTION }, P),
+      Object.assign({ image: "art/art-04.jpg",       text: PAINTING_CAPTION }, P),
+      Object.assign({ image: "art/art-05.jpg",       text: PAINTING_CAPTION }, P),
+      // Series 2 — Paesaggio fluido (landscape textile installations)
+      Object.assign({ image: "art/inst-00-cover.jpg", text: "Paesaggio fluido series" }, L),
+      Object.assign({ image: "art/inst-01.jpg",       text: INSTALL_CAPTION }, L),
+      Object.assign({ image: "art/inst-02.jpg",       text: INSTALL_CAPTION }, L),
+      Object.assign({ image: "art/inst-03.jpg",       text: INSTALL_CAPTION }, L),
+      Object.assign({ image: "art/inst-04.jpg",       text: INSTALL_CAPTION }, L),
+      Object.assign({ image: "art/inst-05.jpg",       text: INSTALL_CAPTION }, L)
+    ]
+  });
+})();
+</script>
+
+</body>
+</html>

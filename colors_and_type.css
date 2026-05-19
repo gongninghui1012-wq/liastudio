@@ -1,0 +1,265 @@
+/* ==========================================================================
+   Lia Design System — Colors & Type  (v2 — calm with edge)
+   Product designer in tech. Dark mode, light-blue accent, pill buttons.
+   Inspired by addison.design (display serif) + Linear (precision).
+   ========================================================================== */
+
+/* --- Webfonts -----------------------------------------------------------
+   Geist (Vercel) — single-family system covering display, UI, and body.
+   Geist Mono for metadata, eyebrows, captions, and small UI markers.   */
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
+
+:root {
+  /* ---------- COLOR : Neutrals (true dark, neutral cool) ---------- */
+  --paper:        #0A0A0A;   /* page background — near pure black */
+  --paper-2:      #111111;   /* card / inset background */
+  --paper-3:      #1A1A1A;   /* hover surface */
+  --ink:          #FFFFFF;   /* primary text, pure white */
+  --ink-2:        #B8B8B8;   /* secondary text */
+  --ink-3:        #7A7A7A;   /* tertiary, captions, metadata */
+  --ink-4:        #4A4A4A;   /* placeholders, disabled */
+  --line:         #232323;   /* default border */
+  --line-strong:  #3A3A3A;   /* hover / focus border */
+
+  /* ---------- COLOR : Accent ---------- */
+  --accent:       #487FA7;   /* sky blue — links, focus, marks */
+  --accent-2:     #6d84a3;   /* muted secondary blue */
+  --accent-deep:  #152862;   /* deep navy — layered surfaces */
+  --accent-ink:   #FFFFFF;   /* foreground on accent bg */
+  --accent-soft:  rgba(72, 127, 167, 0.10); /* tinted background */
+  --accent-glow:  rgba(72, 127, 167, 0.35); /* button glow on hover */
+
+  /* ---------- BUTTON SURFACES (signature pill button) ---------- */
+  --btn-bg:          linear-gradient(180deg, #141b22 0%, #0b1018 100%);
+  --btn-border:      rgba(72, 127, 167, 0.18);
+  --btn-hover-color: var(--accent);
+
+  /* ---------- COLOR : Semantic (used sparingly) ---------- */
+  --good:         #6FBF8F;
+  --warn:         #D4A03E;
+  --bad:          #E16A5A;
+
+  /* ---------- COLOR : Light mode (optional inverse) ---------- */
+  --light-paper:   #FAFAFA;
+  --light-paper-2: #F0F0F0;
+  --light-ink:     #0A0A0A;
+  --light-ink-2:   #444444;
+  --light-ink-3:   #777777;
+  --light-line:    #E0E0E0;
+
+  /* ---------- TYPE : Families ----------
+     Single-family system: Geist for everything except mono.
+     --display and --serif are aliases of --sans, kept for backward
+     compatibility with any legacy refs.                                */
+  --sans:     "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --display:  var(--sans);
+  --serif:    var(--sans);
+  --mono:     "Geist Mono", "SF Mono", Menlo, Consolas, monospace;
+
+  /* ---------- TYPE : Scale ---------- */
+  --fs-xs:    12px;
+  --fs-sm:    14px;
+  --fs-md:    16px;
+  --fs-lg:    18px;
+  --fs-xl:    22px;
+  --fs-2xl:   28px;
+  --fs-3xl:   40px;
+  --fs-4xl:   56px;
+  --fs-5xl:   88px;
+  --fs-6xl:   140px;
+
+  /* ---------- TYPE : Semantic display tokens ----------
+     Page-level hero / intro pattern. Each page's H1 should use --fs-display
+     (or the .h-display class). Comfortable 2.5-3× body ratio — Apple-HIG
+     restraint, not addison-scale shouting.                                 */
+  --fs-display:    clamp(34px, 3.8vw, 46px); /* page hero title */
+  --fs-lede:       var(--fs-lg);             /* intro paragraph (18px) */
+  --tracking-display: -0.025em;
+  --lh-display-snug: 1.1;
+
+  /* ---------- TYPE : Tokens ---------- */
+  --lh-tight:   1.02;
+  --lh-display: 1.05;
+  --lh-snug:    1.2;
+  --lh-body:    1.55;
+  --lh-loose:   1.7;
+  --tracking-tight:  -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.06em;
+  --tracking-caps:   0.12em;
+
+  /* ---------- SPACING ---------- */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  24px;
+  --s-6:  32px;
+  --s-7:  48px;
+  --s-8:  64px;
+  --s-9:  96px;
+  --s-10: 144px;
+
+  /* ---------- RADII ---------- */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  /* ---------- SHADOWS & GLOWS ---------- */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.40);
+  --shadow-md: 0 8px 24px -8px rgba(0,0,0,0.60), 0 2px 6px -2px rgba(0,0,0,0.40);
+  --shadow-lg: 0 24px 60px -16px rgba(0,0,0,0.70), 0 8px 20px -8px rgba(0,0,0,0.50);
+  --shadow-pill: inset 0 0 0 1px var(--btn-border),
+                 0 1px 2px rgba(0,0,0,0.40),
+                 0 0 24px rgba(0,0,0,0.30);
+  --shadow-pill-glow: inset 0 0 0 1px rgba(72,127,167,0.45),
+                     0 0 28px rgba(72,127,167,0.30);
+  --shadow-inset: inset 0 0 0 1px rgba(255,255,255,0.06);
+  --shadow-card-hover: 0 20px 60px rgba(0,0,0,0.55),
+                       0 0 0 1px rgba(255,255,255,0.06);
+
+  /* ---------- CHROME : translucent surfaces (glass) ---------- */
+  --chrome-glass-strong: rgba(12,12,12,0.90); /* floating nav pill — high opacity over arbitrary content */
+  --chrome-glass:        rgba(12,12,12,0.75); /* overlays on artwork — badges, play buttons */
+
+  /* ---------- OVERLAY : image gradient stops (bottom-up readability) ---------- */
+  --overlay-top: rgba(10,10,10,0.85); /* darkest — anchors text on tall cards */
+  --overlay-mid: rgba(10,10,10,0.25); /* mid-fade */
+
+  /* ---------- TINT : white-on-dark scale (Apple-HIG discrete ladder) ---------- */
+  --tint-1: rgba(255,255,255,0.06); /* hairline edge, very faint stroke */
+  --tint-2: rgba(255,255,255,0.10); /* border, faint hover */
+  --tint-3: rgba(255,255,255,0.14); /* hover surface, mid emphasis */
+  --tint-4: rgba(255,255,255,0.25); /* divider, strong border */
+  --tint-5: rgba(255,255,255,0.50); /* secondary text on overlay */
+
+  /* ---------- ACCENT TINT : sky-blue scale (fills gaps around named tokens) ----------
+     Named semantic tokens above (accent-soft=0.10, btn-border=0.18, accent-glow=0.35)
+     are preferred for their use cases. Use --accent-tint-N for ladder positions
+     that don't have a named meaning yet.                                              */
+  --accent-tint-1: rgba(72,127,167,0.08); /* very faint surface tint */
+  --accent-tint-2: rgba(72,127,167,0.15); /* faint border, soft gradient stop */
+  --accent-tint-3: rgba(72,127,167,0.25); /* focus ring, light gradient */
+  --accent-tint-4: rgba(72,127,167,0.50); /* strong border, accent stroke */
+
+  /* ---------- MOTION ---------- */
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:    140ms;
+  --dur-base:    240ms;
+  --dur-slow:    480ms;
+}
+
+/* ==========================================================================
+   Semantic element styles — drop-in defaults
+   ========================================================================== */
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--fs-md);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--sans);
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+.h-display, h1.display {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: var(--fs-display);
+  line-height: var(--lh-display-snug);
+  letter-spacing: var(--tracking-display);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+h1 { font-size: var(--fs-4xl); line-height: var(--lh-tight); font-weight: 500; }
+h2 { font-size: var(--fs-3xl); line-height: var(--lh-tight); font-weight: 500; }
+h3 { font-size: var(--fs-2xl); line-height: var(--lh-snug); font-weight: 500; }
+h4 { font-size: var(--fs-xl);  line-height: var(--lh-snug); font-weight: 500; }
+
+p, .body {
+  font-family: var(--sans);
+  font-size: var(--fs-md);
+  line-height: var(--lh-body);
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.lede {
+  font-family: var(--sans);
+  font-size: var(--fs-lg);
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--ink-2);
+  letter-spacing: -0.005em;
+}
+
+.serif-mark {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.eyebrow, .caption {
+  font-family: var(--sans);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+code, pre, .mono {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  color: var(--ink-2);
+}
+
+a {
+  color: var(--ink);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+a:hover { color: var(--accent); }
+
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+/* ---------- Pill button (the brand's signature control) ---------- */
+.pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 22px;
+  cursor: pointer;
+  letter-spacing: -0.005em;
+  box-shadow: var(--shadow-pill);
+  transition: box-shadow var(--dur-base) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.pill-btn:hover {
+  box-shadow: var(--shadow-pill-glow);
+  color: var(--accent);
+}
+.pill-btn:active { transform: scale(0.98); }
+.pill-btn .mark { color: var(--accent); font-size: 12px; }

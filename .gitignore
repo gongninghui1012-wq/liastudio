@@ -1,0 +1,15 @@
+# OS / editor
+.DS_Store
+*.DS_Store
+.claude/
+
+# scratch / non-deployed files
+ning.html
+_ref.html
+index-react-backup.html
+_assets/
+_components/
+_runtimes/
+
+# React source — not used by the static site
+*.jsx

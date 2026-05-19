@@ -1,0 +1,1176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SeeMOMA · Case Study · Lia Gong</title>
+  <meta name="description" content="SeeMOMA: a B2C art visit assistant for SFMOMA with real-time artwork explanations, floor route navigation, and AR guidance. Case study by Lia Gong.">
+
+  <!-- Design tokens — single source of truth at project root -->
+  <link rel="stylesheet" href="colors_and_type.css">
+
+  <style>
+/* ============================================================
+   SEEMOMA CASE STUDY — page-scoped palette only.
+   ALL spacing / type / radii / line-height come from the design
+   system tokens in colors_and_type.css (--s-N, --fs-N, --r-N,
+   --lh-*, --tracking-*). The case study keeps its own light-mode
+   colour language (coral red + near-black navy on white).
+   ============================================================ */
+:root {
+  --cs-bg:        #FFFFFF;
+  --cs-red:       #CB4B3E;   /* primary accent */
+  --cs-red-deep:  #B23E33;
+  --cs-red-soft:  #E7A79D;   /* mid tint — secondary bar / chip */
+  --cs-red-faint: #F3D6D0;   /* lightest tint — third bar */
+  --cs-ink:       #1C2333;   /* near-black navy — headings */
+  --cs-body:      #5C6372;   /* body copy */
+  --cs-muted:     #9AA0AC;   /* eyebrows, captions */
+  --cs-surface:   #F2F2F4;   /* gray panels + light cards */
+  --cs-card:      #FFFFFF;
+  --cs-line:      #E6E7EB;
+  --cs-pink-1:    #F8DDD7;   /* impact / next-step gradient top */
+  --cs-pink-2:    #F2CCC5;   /* impact / next-step gradient base */
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body {
+  background: var(--cs-bg);
+  color: var(--cs-body);
+  font-family: var(--sans);
+  font-size: var(--fs-md);
+  line-height: var(--lh-body);
+  letter-spacing: -0.005em;
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+::selection { background: var(--cs-red); color: #fff; }
+
+/* ---------- layout primitives ---------- */
+.cs-wrap { max-width: 1120px; margin: 0 auto; padding: 0 var(--s-8); }
+.cs-section { padding: var(--s-9) 0; }
+.cs-band { width: 100%; }
+
+/* ---------- typography ---------- */
+.cs-h2 {
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  color: var(--cs-ink);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
+  margin-bottom: var(--s-6);
+}
+.cs-eyebrow {
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--cs-muted);
+}
+.cs-eyebrow--red { color: var(--cs-red); }
+.cs-p { font-size: var(--fs-md); color: var(--cs-body); }
+.cs-p + .cs-p { margin-top: var(--s-4); }
+.cs-accent { color: var(--cs-red); font-weight: 500; }
+.cs-strong { color: var(--cs-ink); font-weight: 600; }
+
+/* image slots — hold layout + degrade gracefully if asset missing */
+.cs-shot {
+  background: var(--cs-surface);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.cs-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cs-shot--phone { background: transparent; border-radius: 0; }
+.cs-shot--phone img { object-fit: contain; }
+
+/* ============================================================
+   NAV — ported 1:1 from landing.html (scroll-shrink-to-pill +
+   sliding indicator). Dark links on the light hero, white once
+   the nav collapses into the dark glass pill on scroll.
+   ============================================================ */
+.nav {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 100%; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 48px;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition:
+    top 0.45s var(--ease-out),
+    max-width 0.45s var(--ease-out),
+    padding 0.45s var(--ease-out),
+    background 0.45s var(--ease-out),
+    border-radius 0.45s var(--ease-out),
+    border-color 0.45s var(--ease-out),
+    box-shadow 0.45s var(--ease-out),
+    gap 0.45s var(--ease-out);
+}
+.nav.scrolled {
+  top: 14px;
+  width: fit-content;
+  max-width: 560px;
+  padding: 9px 14px;
+  gap: 16px;
+  justify-content: flex-start;
+  background: var(--chrome-glass-strong);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-radius: 999px;
+  border-color: var(--tint-2);
+  box-shadow: 0 0 0 1px var(--tint-1), 0 8px 32px rgba(0,0,0,0.55);
+}
+.nav-logo {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; text-decoration: none;
+  width: 38px; height: 38px;
+  background: var(--btn-bg);
+  border-radius: 50%;
+  box-shadow: var(--shadow-pill);
+  position: relative; overflow: hidden;
+  transition: box-shadow var(--dur-base) var(--ease-out),
+              transform   var(--dur-fast) var(--ease-out);
+}
+.nav-logo::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 35%, var(--tint-2) 50%, transparent 65%);
+  transform: translateX(-100%);
+  transition: transform 0.55s var(--ease-out);
+  pointer-events: none;
+}
+.nav-logo:hover { box-shadow: var(--shadow-pill-glow); }
+.nav-logo:hover::before { transform: translateX(120%); }
+.nav-logo:active { transform: scale(0.97); }
+.nav-logo img { display: block; position: relative; z-index: 1; }
+.nav-divider {
+  width: 1px; height: 16px;
+  background: var(--tint-4);
+  flex-shrink: 0; margin: 0 8px;
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-out);
+}
+.nav.scrolled .nav-divider { opacity: 1; }
+.nav-right { display: flex; align-items: center; gap: 20px; }
+.nav-links { display: flex; gap: 4px; list-style: none; position: relative; }
+.nav-links li { position: relative; z-index: 1; }
+.nav-links a {
+  display: block; padding: 5px 10px;
+  font-size: 13.5px; font-weight: 500;
+  color: var(--cs-ink);                 /* dark on the light hero */
+  letter-spacing: -0.005em;
+  border-radius: 6px;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.nav.scrolled .nav-links a { color: #fff; }   /* white on the dark pill */
+.nav-links a:hover, .nav-links a.active { text-decoration: none; }
+.nav-indicator {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: rgba(28,35,51,0.08);
+  border-radius: 999px;
+  pointer-events: none; opacity: 0;
+  transition: left 0.28s cubic-bezier(0.22,1,0.36,1),
+              width 0.28s cubic-bezier(0.22,1,0.36,1),
+              opacity 0.18s;
+  z-index: 0;
+}
+.nav.scrolled .nav-indicator { background: var(--tint-2); }
+.nav-indicator.visible { opacity: 1; }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.cs-hero { padding: var(--s-10) 0 var(--s-8); }
+.cs-intro {
+  font-size: clamp(var(--fs-md), 2vw, var(--fs-lg));
+  line-height: var(--lh-body);
+  color: var(--cs-ink);
+  font-weight: 400;
+  text-align: left;
+  padding: 0 var(--s-2);
+  margin-bottom: var(--s-8);
+}
+.cs-intro b { color: var(--cs-red); font-weight: 600; font-size: var(--fs-xl); }
+.cs-hero-shot { padding: 0 var(--s-2); }
+.cs-hero-shot img {
+  width: 100%; height: auto;
+  border-radius: var(--r-lg);
+  display: block;
+}
+
+/* ============================================================
+   PROJECT INFO  (light gray rounded card, 5 columns)
+   ============================================================ */
+.cs-projinfo {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: var(--s-6);
+  background: var(--cs-surface);
+  border-radius: var(--r-xl);
+  padding: var(--s-7);
+}
+.cs-projinfo h5 {
+  font-family: var(--mono);
+  font-size: var(--fs-xs); font-weight: 500;
+  letter-spacing: var(--tracking-caps); text-transform: uppercase;
+  color: var(--cs-red);
+  margin-bottom: var(--s-4);
+}
+.cs-projinfo li {
+  list-style: none;
+  font-size: var(--fs-sm); color: var(--cs-ink);
+  line-height: 1.9;
+}
+
+/* ============================================================
+   KEY FEATURES  (alternating phone / text)
+   ============================================================ */
+.cs-feature {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-8);
+  align-items: center; margin-top: var(--s-8);
+}
+.cs-feature-phone { display: flex; justify-content: center; }
+.cs-feature-phone img,
+.cs-feature-phone video {
+  width: 300px; max-width: 100%; height: auto;
+  display: block;
+}
+.cs-feature-text .kf {
+  font-family: var(--mono); font-size: var(--fs-xs); font-weight: 500;
+  letter-spacing: var(--tracking-caps); text-transform: uppercase;
+  color: var(--cs-muted); margin-bottom: var(--s-3);
+}
+.cs-feature-text h3 {
+  font-size: var(--fs-xl);
+  font-weight: 600; color: var(--cs-ink);
+  letter-spacing: var(--tracking-tight); line-height: var(--lh-snug);
+  margin-bottom: var(--s-4);
+}
+.cs-feature-text p { font-size: var(--fs-md); }
+
+/* ============================================================
+   STATEMENT BAND  (centered research question)
+   ============================================================ */
+.cs-statement-illo { margin-bottom: var(--s-8); }
+.cs-statement-illo img {
+  width: 100%; height: auto;
+  border-radius: var(--r-lg);
+  display: block;
+}
+.cs-statement {
+  background: linear-gradient(160deg, var(--cs-pink-1) 0%, var(--cs-pink-2) 100%);
+  padding: var(--s-9) 0;
+}
+.cs-statement p {
+  font-size: var(--fs-xl);
+  font-weight: 500; color: #101828;
+  letter-spacing: var(--tracking-tight); line-height: var(--lh-snug);
+  text-align: center;
+}
+
+/* ============================================================
+   PROBLEM  + bar chart + persona + goals
+   ============================================================ */
+.cs-context-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-8);
+  align-items: center;
+}
+.cs-bars { display: flex; flex-direction: column; gap: var(--s-3); }
+.cs-bar-track {
+  height: 38px; border-radius: var(--r-sm);
+  background: var(--cs-surface);
+  position: relative; overflow: hidden;
+}
+.cs-bar-fill {
+  height: 100%; border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: var(--fs-sm);
+}
+.cs-bar-1 { background: var(--cs-red); color: #fff; }
+.cs-bar-2 { background: var(--cs-red-soft); color: #fff; }
+.cs-bar-3 { background: var(--cs-red-faint); color: var(--cs-ink); }
+.cs-bar-legend { display: flex; flex-direction: column; gap: var(--s-3); }
+.cs-bar-legend span {
+  display: flex; align-items: center; gap: var(--s-2);
+  font-size: var(--fs-xs); color: var(--cs-body);
+}
+.cs-dot { width: 10px; height: 10px; border-radius: var(--r-pill); flex-shrink: 0; }
+.cs-chart-wrap { display: grid; grid-template-columns: 1fr auto; gap: var(--s-5); align-items: center; }
+
+.cs-sub-h {
+  font-size: var(--fs-lg); font-weight: 600; color: var(--cs-ink);
+  letter-spacing: var(--tracking-tight);
+  margin: var(--s-8) 0 var(--s-5);
+}
+.cs-persona {
+  background: var(--cs-surface);
+  border-radius: var(--r-xl);
+  padding: var(--s-7);
+}
+.cs-persona-top { display: flex; align-items: center; gap: var(--s-5); }
+.cs-persona-top .cs-shot {
+  width: 96px; height: 96px; flex-shrink: 0;
+  border-radius: var(--r-pill);
+}
+.cs-persona-quote {
+  font-size: var(--fs-lg); font-style: italic; font-weight: 500;
+  color: var(--cs-ink); letter-spacing: -0.01em;
+}
+.cs-tags { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-3); }
+.cs-tag {
+  font-size: var(--fs-xs); color: var(--cs-body);
+  background: #E5E6E9; border-radius: var(--r-pill);
+  padding: 5px 12px;
+}
+.cs-painlist { margin-top: var(--s-5); }
+.cs-painlist .lbl { font-size: var(--fs-sm); color: var(--cs-ink); font-weight: 600; margin-bottom: var(--s-2); }
+.cs-painlist ul { padding-left: var(--s-5); }
+.cs-painlist li { font-size: var(--fs-sm); color: var(--cs-body); line-height: 1.7; }
+
+.cs-goals { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); }
+.cs-goal {
+  background: var(--cs-card);
+  border: 1px solid var(--cs-line);
+  border-radius: var(--r-lg);
+  padding: var(--s-7) var(--s-6);
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--s-5); text-align: center;
+}
+.cs-goal-ic {
+  width: 56px; height: 56px; border-radius: var(--r-pill);
+  background: var(--cs-red-faint);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cs-red);
+}
+.cs-goal p { font-size: var(--fs-md); color: var(--cs-ink); }
+
+/* ============================================================
+   GRAY RESEARCH PANELS
+   ============================================================ */
+.cs-panel {
+  background: var(--cs-surface);
+  border-radius: var(--r-xl);
+  padding: var(--s-7);
+}
+.cs-panel + .cs-panel { margin-top: var(--s-6); }
+.cs-panel-h {
+  font-size: var(--fs-xl);
+  font-weight: 600; color: var(--cs-ink);
+  letter-spacing: var(--tracking-tight); line-height: var(--lh-snug);
+  margin: var(--s-3) 0 var(--s-3);
+}
+.cs-panel-sub { font-size: var(--fs-sm); color: var(--cs-body); margin-bottom: var(--s-6); }
+
+/* stat cards */
+.cs-cards-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-5); }
+.cs-stat {
+  background: var(--cs-card);
+  border-radius: var(--r-lg);
+  padding: var(--s-6) var(--s-5);
+  text-align: center;
+}
+.cs-stat .lbl {
+  font-size: var(--fs-sm); color: var(--cs-muted);
+}
+.cs-stat .num {
+  font-size: var(--fs-3xl); font-weight: 700; color: var(--cs-red);
+  letter-spacing: var(--tracking-tight); margin: var(--s-3) 0; line-height: 1;
+}
+.cs-stat .desc { font-size: var(--fs-sm); color: var(--cs-body); line-height: var(--lh-body); }
+
+/* quote cards */
+.cs-quotecard {
+  background: var(--cs-card);
+  border-radius: var(--r-lg);
+  padding: var(--s-6);
+}
+.cs-quotecard .qmark { font-size: var(--fs-2xl); color: var(--cs-red); font-weight: 700; line-height: 1; }
+.cs-quotecard p { font-size: var(--fs-sm); color: var(--cs-body); margin-top: var(--s-4); line-height: 1.7; }
+.cs-insightbox {
+  background: var(--cs-card);
+  border-radius: var(--r-lg);
+  padding: var(--s-6);
+  margin-top: var(--s-5);
+}
+.cs-insightbox .lbl { font-size: var(--fs-xs); color: var(--cs-muted); margin-bottom: var(--s-2); }
+.cs-insightbox p { font-size: var(--fs-md); color: var(--cs-ink); }
+
+/* ============================================================
+   HMW  (two-column needs / challenges)
+   ============================================================ */
+.cs-breaklabel {
+  font-size: var(--fs-lg); font-weight: 600; color: var(--cs-red);
+  letter-spacing: -0.01em; margin: var(--s-6) 0 var(--s-5);
+}
+.cs-hmw-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); }
+.cs-hmw-card {
+  background: var(--cs-card);
+  border: 1px solid var(--cs-line);
+  border-radius: var(--r-xl);
+  padding: var(--s-7);
+  box-shadow: 0 6px 24px -16px rgba(28,35,51,0.30);
+}
+.cs-hmw-card h4 {
+  font-size: var(--fs-lg); font-weight: 600;
+  letter-spacing: -0.01em; margin-bottom: var(--s-5);
+}
+.cs-hmw-card.is-needs h4 { color: var(--cs-ink); }
+.cs-hmw-card.is-challenges h4 { color: var(--cs-red); }
+.cs-bullets { display: flex; flex-direction: column; gap: var(--s-4); }
+.cs-bullets li {
+  list-style: none; position: relative; padding-left: var(--s-5);
+  font-size: var(--fs-sm); color: var(--cs-body); line-height: 1.65;
+}
+.cs-bullets li::before {
+  content: ""; position: absolute; left: 0; top: 7px;
+  width: 7px; height: 7px; border-radius: var(--r-pill);
+  background: var(--cs-red);
+}
+
+/* ============================================================
+   IDEATION  (AR concept circles + brainstorm board)
+   ============================================================ */
+.cs-ar-concept {
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--s-7); margin-top: var(--s-7);
+}
+.cs-ar-node { display: flex; flex-direction: column; align-items: center; gap: var(--s-4); }
+.cs-ar-circle {
+  width: 168px; height: 168px; border-radius: var(--r-pill);
+  background: radial-gradient(circle at 38% 32%, #D88478 0%, #CB6155 55%, #C0564A 100%);
+  box-shadow: 0 24px 48px -20px rgba(192,86,74,0.55);
+  display: flex; align-items: center; justify-content: center;
+}
+.cs-ar-circle svg {
+  width: 72px; height: 72px;
+  color: #FBE4DA;
+}
+.cs-ar-node p { font-size: var(--fs-sm); color: var(--cs-body); }
+.cs-ar-plus { font-size: var(--fs-2xl); color: var(--cs-muted); font-weight: 300; }
+.cs-board-shot { aspect-ratio: 1095 / 240; margin-top: var(--s-5); }
+
+/* ============================================================
+   TESTING  (task flow + card sorting)
+   ============================================================ */
+.cs-intro-hl { color: var(--cs-red); }
+.cs-task { display: grid; grid-template-columns: 52px 1fr 32px 1fr; gap: var(--s-4); align-items: center; }
+.cs-task + .cs-task { margin-top: var(--s-5); }
+.cs-task-num {
+  width: 52px; height: 52px; border-radius: var(--r-pill);
+  background: var(--cs-red-soft); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--fs-lg); font-weight: 700;
+}
+.cs-task-card {
+  background: var(--cs-card);
+  border: 1px solid var(--cs-line);
+  border-radius: var(--r-md);
+  padding: var(--s-4) var(--s-5);
+  font-size: var(--fs-sm); color: var(--cs-ink);
+}
+.cs-task-card.is-goal { color: var(--cs-body); }
+.cs-task-arrow { color: var(--cs-muted); font-size: var(--fs-xl); text-align: center; }
+
+.cs-cardsort { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: var(--s-6); margin-top: var(--s-5); }
+.cs-cardsort-col { display: flex; flex-direction: column; gap: var(--s-5); }
+.cs-cardsort-card {
+  background: var(--cs-card);
+  border-radius: var(--r-lg);
+  padding: var(--s-6);
+  text-align: center;
+}
+.cs-cardsort-card .lbl {
+  font-size: var(--fs-sm); font-weight: 600; color: var(--cs-red);
+  margin-bottom: var(--s-3);
+}
+.cs-cardsort-card p { font-size: var(--fs-sm); color: var(--cs-body); line-height: 1.7; }
+.cs-cardsort .cs-shot { aspect-ratio: 4 / 3; }
+
+/* ============================================================
+   SOLUTION
+   ============================================================ */
+.cs-solution-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: var(--s-6);
+  max-width: 760px; margin: var(--s-5) auto 0;
+}
+.cs-solution-col { display: flex; flex-direction: column; gap: var(--s-7); }
+.cs-solution-col--offset { margin-top: var(--s-9); }
+.cs-solution-grid img {
+  width: 100%; height: auto; display: block;
+  filter: drop-shadow(0 6px 14px rgba(228, 74, 51, 0.02));
+}
+
+/* ============================================================
+   IMPACT
+   ============================================================ */
+.cs-impact-card {
+  background: linear-gradient(160deg, var(--cs-pink-1) 0%, var(--cs-pink-2) 100%);
+  border-radius: var(--r-xl);
+  padding: var(--s-8) var(--s-7);
+}
+.cs-impact-item { display: flex; gap: var(--s-4); }
+.cs-impact-item + .cs-impact-item { margin-top: var(--s-6); }
+.cs-impact-item .ic {
+  width: 22px; height: 22px; flex-shrink: 0;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--cs-red);
+  color: var(--cs-red);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; margin-top: 2px;
+}
+.cs-impact-item b { color: var(--cs-red-deep); font-weight: 600; font-size: var(--fs-md); }
+.cs-impact-item p { color: var(--cs-body); font-size: var(--fs-sm); margin-top: var(--s-2); line-height: 1.7; }
+
+/* ============================================================
+   NEXT STEPS
+   ============================================================ */
+.cs-next-card {
+  background: linear-gradient(160deg, var(--cs-pink-1) 0%, var(--cs-pink-2) 100%);
+  border-radius: var(--r-xl);
+  padding: var(--s-7);
+}
+.cs-next-card + .cs-next-card { margin-top: var(--s-5); }
+.cs-next-card h4 {
+  font-size: var(--fs-lg); font-weight: 600; color: var(--cs-red-deep);
+  letter-spacing: var(--tracking-tight); margin-bottom: var(--s-3);
+}
+.cs-next-card p { font-size: var(--fs-sm); color: var(--cs-body); line-height: 1.7; }
+
+/* ============================================================
+   FOOTER — ported 1:1 from landing.html
+   ============================================================ */
+.footer-outer { background: transparent; position: relative; }
+.footer {
+  padding: 32px 48px 44px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 16px;
+  max-width: 1060px; margin: 0 auto; width: 100%;
+  position: relative; z-index: 1;
+}
+.footer-copy { font-size: 13px; color: var(--cs-muted); letter-spacing: -0.01em; }
+.footer-nav { display: flex; gap: 28px; list-style: none; }
+.footer-nav a { font-size: 13px; color: var(--cs-body); letter-spacing: -0.01em; transition: color var(--dur-fast) var(--ease-out); }
+.footer-nav a:hover { color: var(--cs-ink); }
+.footer-social { display: flex; gap: 20px; }
+.footer-social a { font-size: 13px; color: var(--cs-body); letter-spacing: -0.01em; text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+.footer-social a:hover { color: var(--cs-ink); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 880px) {
+  .cs-wrap { padding: 0 var(--s-5); }
+  .cs-projinfo { grid-template-columns: 1fr 1fr; }
+  .cs-context-grid,
+  .cs-feature,
+  .cs-goals,
+  .cs-hmw-2,
+  .cs-cards-3,
+  .cs-cardsort { grid-template-columns: 1fr; gap: var(--s-6); }
+  .cs-solution-grid { grid-template-columns: 1fr; }
+  .cs-solution-col--offset { margin-top: 0; }
+  .cs-chart-wrap { grid-template-columns: 1fr; }
+  .cs-ar-concept { flex-direction: column; }
+  .cs-task { grid-template-columns: 44px 1fr; }
+  .cs-task-arrow { display: none; }
+  .cs-task-card.is-goal { grid-column: 2; }
+  .nav { padding: 14px 20px; }
+  .nav.scrolled { top: 10px; max-width: calc(100% - 32px); padding: 9px 14px; }
+  .footer { flex-direction: column; text-align: center; gap: 18px; padding: 24px 24px 36px; }
+  .footer-social { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ============================================================
+   CUSTOM CURSOR  (blue dot, ported 1:1 from landing.html)
+   ============================================================ */
+body { cursor: none; }
+* { cursor: none !important; }
+.cursor-dot {
+  width: 20px; height: 20px;
+  background: var(--accent);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 10001;
+  transform: translate(-50%, -50%);
+  transition: width 0.18s var(--ease-out),
+              height 0.18s var(--ease-out),
+              opacity 0.18s;
+}
+body.cur-hover .cursor-dot { width: 30px; height: 30px; }
+body.cur-click .cursor-dot { width: 10px; height: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================ NAV -->
+<header class="nav" id="nav">
+  <a href="landing.html" class="nav-logo" aria-label="Lia Gong home">
+    <img src="logo1.svg" alt="Lia Gong" width="14" height="20">
+  </a>
+  <span class="nav-divider" aria-hidden="true"></span>
+  <div class="nav-right">
+    <ul class="nav-links">
+      <span class="nav-indicator" aria-hidden="true"></span>
+      <li><a href="landing.html#work">Work</a></li>
+      <li><a href="playground.html">Playground</a></li>
+      <li><a href="landing.html#about">About</a></li>
+      <li><a href="landing.html#contact">Contact</a></li>
+    </ul>
+  </div>
+</header>
+
+<!-- ============================================================ HERO -->
+<div class="cs-wrap">
+  <section class="cs-hero">
+    <p class="cs-intro"><b>SeeMOMA</b> is a B2C art visit assistant, specifically
+    designed for the San Francisco Museum of Modern Art (SFMOMA). By providing
+    instant artwork interpretations, intuitive floor overviews, and augmented
+    reality (AR) navigation, the product reduces cognitive load, enhances visitor
+    satisfaction, and helps the museum offer a more convenient and personalized
+    art experience.</p>
+
+    <div class="cs-hero-shot">
+      <img src="casestudy-moma/hero-collage.png" alt="SeeMOMA app screens: artwork explanation, personal art space, and AR navigation">
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ PROJECT INFO -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <div class="cs-projinfo">
+      <div>
+        <h5>Duration</h5>
+        <ul><li>2 months</li></ul>
+      </div>
+      <div>
+        <h5>Industry</h5>
+        <ul><li>Art &amp; Culture</li></ul>
+      </div>
+      <div>
+        <h5>Type</h5>
+        <ul><li>Museum Experience</li><li>Personal Project</li></ul>
+      </div>
+      <div>
+        <h5>My Role</h5>
+        <ul>
+          <li>Defining Problem</li>
+          <li>Research</li>
+          <li>Feature Scoping</li>
+          <li>UX Design</li>
+          <li>Prototyping</li>
+        </ul>
+      </div>
+      <div>
+        <h5>Tools</h5>
+        <ul><li>Figma</li><li>After Effects</li></ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ KEY FEATURES -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">Key features</h2>
+
+    <!-- Feature 1 -->
+    <div class="cs-feature">
+      <div class="cs-feature-phone">
+        <video src="casestudy-moma/kf1.mp4" poster="casestudy-moma/kf1-poster.png"
+               autoplay muted loop playsinline></video>
+      </div>
+      <div class="cs-feature-text">
+        <div class="kf">Key Feature 1</div>
+        <h3>Real-time Artwork Explanation</h3>
+        <p class="cs-p">When you stand in front of an artwork, your phone
+        automatically recognizes it, pops up an artwork card, and displays
+        information about the artwork and the artist.</p>
+      </div>
+    </div>
+
+    <!-- Feature 2 -->
+    <div class="cs-feature">
+      <div class="cs-feature-text">
+        <div class="kf">Key Feature 2</div>
+        <h3>Floor Route Navigation</h3>
+        <p class="cs-p">The lightweight map introduces each floor in a
+        step-by-step manner, telling you the theme and key points of each
+        floor, and is equipped with AR technology to guide users through the
+        visit in a more intuitive way.</p>
+      </div>
+      <div class="cs-feature-phone">
+        <video src="casestudy-moma/kf2.mp4" poster="casestudy-moma/kf2-poster.png"
+               autoplay muted loop playsinline></video>
+      </div>
+    </div>
+
+    <!-- Feature 3 -->
+    <div class="cs-feature">
+      <div class="cs-feature-phone">
+        <video src="casestudy-moma/kf3.mp4" poster="casestudy-moma/kf3-poster.png"
+               autoplay muted loop playsinline></video>
+      </div>
+      <div class="cs-feature-text">
+        <div class="kf">Key Feature 3</div>
+        <h3>Personal Art Space</h3>
+        <p class="cs-p">Collect your favorite works, record your thoughts, and
+        support users in creating a personalized &ldquo;exhibition space&rdquo;.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ PROBLEM ILLUSTRATION -->
+<div class="cs-wrap">
+  <div class="cs-statement-illo">
+    <img src="casestudy-moma/pain-points.png" alt="Illustrations of museum visitor pain points: confusion, missing info, lost, and unknown event">
+  </div>
+</div>
+
+<!-- ============================================================ STATEMENT -->
+<section class="cs-statement">
+  <div class="cs-wrap">
+    <p>Have you ever walked through an exhibition and felt a little lost or
+    unsure about what you were seeing? Many visitors at SFMOMA experience the
+    same challenge.</p>
+  </div>
+</section>
+
+<!-- ============================================================ PROBLEM -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:var(--s-7);">
+    <h2 class="cs-h2">Problem</h2>
+
+    <div class="cs-context-grid">
+      <div>
+        <p class="cs-p">At the San Francisco Museum of Modern Art (SFMOMA),
+        visitors face challenges in understanding artworks due to a lack of
+        clear informational guidance.</p>
+        <p class="cs-p">These challenges can lead to visitor confusion, reduced
+        engagement, and decreased emotional investment, making it difficult for
+        them to fully enjoy their museum visit.</p>
+      </div>
+      <div class="cs-chart-wrap">
+        <div class="cs-bars">
+          <div class="cs-bar-track"><div class="cs-bar-fill cs-bar-1" style="width:78%;">43.7%</div></div>
+          <div class="cs-bar-track"><div class="cs-bar-fill cs-bar-2" style="width:72%;">42.3%</div></div>
+          <div class="cs-bar-track"><div class="cs-bar-fill cs-bar-3" style="width:32%;">15%</div></div>
+        </div>
+        <div class="cs-bar-legend">
+          <span><i class="cs-dot" style="background:var(--cs-red);"></i>Yes</span>
+          <span><i class="cs-dot" style="background:var(--cs-red-soft);"></i>Sometimes</span>
+          <span><i class="cs-dot" style="background:var(--cs-red-faint);"></i>No, often lost</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="cs-sub-h">Target user</h3>
+    <div class="cs-persona">
+      <div class="cs-persona-top">
+        <div class="cs-shot">
+          <img src="casestudy-moma/persona.png" alt="Target user portrait">
+        </div>
+        <div>
+          <p class="cs-persona-quote">&ldquo;I love art, but so often I leave the
+          museum still unsure what I actually saw.&rdquo;</p>
+          <div class="cs-tags">
+            <span class="cs-tag">Contemporary art enthusiasts</span>
+            <span class="cs-tag">Explore new things</span>
+          </div>
+        </div>
+      </div>
+      <div class="cs-painlist">
+        <div class="lbl">Pain points</div>
+        <ul>
+          <li>It is difficult to understand the meaning behind a work of art.</li>
+          <li>They often miss key pieces or special exhibitions.</li>
+          <li>Information isn&rsquo;t presented in a clear or intuitive way.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="cs-sub-h">Project goals</h3>
+    <div class="cs-goals">
+      <div class="cs-goal">
+        <div class="cs-goal-ic" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.5 3a3 3 0 0 0-3 3 3 3 0 0 0-1.5 5.5A3 3 0 0 0 6.5 17 3 3 0 0 0 12 19V4.5A1.5 1.5 0 0 0 9.5 3Z"/>
+            <path d="M14.5 3a3 3 0 0 1 3 3 3 3 0 0 1 1.5 5.5A3 3 0 0 1 17.5 17 3 3 0 0 1 12 19"/>
+          </svg>
+        </div>
+        <p>Help users understand artworks</p>
+      </div>
+      <div class="cs-goal">
+        <div class="cs-goal-ic" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4Z"/>
+            <path d="M9 4v13M15 6.5v13"/>
+          </svg>
+        </div>
+        <p>Help users find the route faster</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ USER RESEARCH -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">User research</h2>
+
+    <div class="cs-panel">
+      <span class="cs-eyebrow">User Survey Findings</span>
+      <h3 class="cs-panel-h">What limits the better experience of SFMOMA?</h3>
+      <p class="cs-panel-sub">I conducted a quantitative survey with a sample
+      size of 36 participants and an effective sample size of 30.</p>
+
+      <div class="cs-cards-3">
+        <div class="cs-stat">
+          <div class="lbl">Insight 1</div>
+          <div class="num">85%</div>
+          <div class="desc">of users felt that the maps and directions at SFMOMA
+          were not clear enough.</div>
+        </div>
+        <div class="cs-stat">
+          <div class="lbl">Insight 2</div>
+          <div class="num">70%</div>
+          <div class="desc">of users said they had difficulty understanding
+          works of art.</div>
+        </div>
+        <div class="cs-stat">
+          <div class="lbl">Insight 3</div>
+          <div class="num">50%</div>
+          <div class="desc">of users need multilingual support, but it is
+          difficult to find such support on site.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cs-panel">
+      <span class="cs-eyebrow">Interview Findings</span>
+      <h3 class="cs-panel-h">What contributes to a better art visit experience?</h3>
+      <p class="cs-panel-sub">Among the 31 responses we collected, most visitors
+      desire museums to provide:</p>
+
+      <div class="cs-cards-3">
+        <div class="cs-quotecard">
+          <div class="qmark">&ldquo;</div>
+          <p>I hope to explain artworks in a way that I can understand, which
+          will help me learn from the exhibition.</p>
+        </div>
+        <div class="cs-quotecard">
+          <div class="qmark">&ldquo;</div>
+          <p>I hope to leave some traces to commemorate this exhibition, which
+          will make me more immersed in the experience.</p>
+        </div>
+        <div class="cs-quotecard">
+          <div class="qmark">&ldquo;</div>
+          <p>A clear and intuitive map would be very helpful to me; I want to
+          quickly know where the works I want to see are.</p>
+        </div>
+      </div>
+
+      <div class="cs-insightbox">
+        <div class="lbl">Insight</div>
+        <p>Visitors expect an experience that goes beyond simply understanding
+        the artworks and finding direction; they also hope to leave their own
+        mark on the exhibition.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ HMW -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">How might we help users have a better museum experience?</h2>
+    <div class="cs-breaklabel">Breaking down the problem:</div>
+
+    <div class="cs-hmw-2">
+      <div class="cs-hmw-card is-needs">
+        <h4>User Needs</h4>
+        <ul class="cs-bullets">
+          <li>Users want to know what a work is roughly saying as soon as they
+          see it.</li>
+          <li>Users want clear and easy-to-read maps.</li>
+          <li>Users want to leave a trace of the exhibition.</li>
+        </ul>
+      </div>
+      <div class="cs-hmw-card is-challenges">
+        <h4>Design Challenges</h4>
+        <ul class="cs-bullets">
+          <li>HMW interpret the work without adding to the reading burden?</li>
+          <li>HMW make maps more intuitive?</li>
+          <li>HMW enable users to create personalized, memorable experiences?</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ IDEATION -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">Ideation</h2>
+    <p class="cs-p" style="margin-bottom:var(--s-6);">Based on the above research
+    insights and user needs, I explored an AR-powered mobile app.</p>
+
+    <div class="cs-panel">
+      <h3 class="cs-panel-h" style="margin-top:0;">AR Concept</h3>
+      <p class="cs-panel-sub" style="margin-bottom:0;">This mobile application
+      incorporates augmented reality (AR) technology to provide a more intuitive
+      visiting experience, helping visitors navigate the museum with clarity and
+      confidence.</p>
+
+      <div class="cs-ar-concept">
+        <div class="cs-ar-node">
+          <div class="cs-ar-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="6" y="2" width="12" height="20" rx="2.8"/>
+              <path d="M11 18.5h2"/>
+            </svg>
+          </div>
+          <p>Phone app</p>
+        </div>
+        <div class="cs-ar-plus" aria-hidden="true">+</div>
+        <div class="cs-ar-node">
+          <div class="cs-ar-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+              <path d="m3.3 7 8.7 5 8.7-5"/>
+              <path d="M12 22V12"/>
+            </svg>
+          </div>
+          <p>AR technology</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cs-panel">
+      <h3 class="cs-panel-h" style="margin-top:0;">How might we turn visitor pain
+      points into opportunities?</h3>
+      <p class="cs-p">Understanding users&rsquo; frustrations allowed us to uncover
+      clear opportunity areas. Through functional brainstorming, we mapped each
+      pain point to three experience directions.</p>
+      <div class="cs-shot cs-board-shot">
+        <img src="casestudy-moma/ar-board.png" alt="Functional brainstorming board">
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ TESTING -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">Testing</h2>
+    <p class="cs-p" style="margin-bottom:var(--s-6);">To verify
+    <span class="cs-intro-hl">whether our concept truly solves visitors&rsquo;
+    real needs</span> and to <span class="cs-intro-hl">uncover what they care
+    about the most</span>, I organized a user group workshop with 15
+    participants who shared similar pain points in their museum experiences.</p>
+
+    <div class="cs-panel">
+      <h3 class="cs-panel-h" style="margin-top:0;">How can visitors understand
+      artworks and simplify the visit process?</h3>
+      <p class="cs-panel-sub">I translated the design opportunities into three
+      user tasks and evaluated whether our solution meaningfully improves the
+      visit experience.</p>
+
+      <div class="cs-task">
+        <div class="cs-task-num">1</div>
+        <div class="cs-task-card">Task 1: View an artwork explanation</div>
+        <div class="cs-task-arrow" aria-hidden="true">&rarr;</div>
+        <div class="cs-task-card is-goal">Goal: Do users find the explanation
+        &ldquo;clear and easy to read&rdquo;?</div>
+      </div>
+      <div class="cs-task">
+        <div class="cs-task-num">2</div>
+        <div class="cs-task-card">Task 2: Save the artwork and add a personal
+        comment</div>
+        <div class="cs-task-arrow" aria-hidden="true">&rarr;</div>
+        <div class="cs-task-card is-goal">Goal: Test if personalization increases
+        engagement.</div>
+      </div>
+      <div class="cs-task">
+        <div class="cs-task-num">3</div>
+        <div class="cs-task-card">Task 3: Navigate to the artwork on the map</div>
+        <div class="cs-task-arrow" aria-hidden="true">&rarr;</div>
+        <div class="cs-task-card is-goal">Goal: Do users reach the work quickly
+        and without confusion?</div>
+      </div>
+
+      <h3 class="cs-panel-h" style="margin-top:var(--s-8);">What truly matters?</h3>
+      <p class="cs-panel-sub">After the tasks were completed, I conducted a card
+      sorting session where participants ranked the features based on their
+      practicality and emotional value.</p>
+      <span class="cs-eyebrow cs-eyebrow--red">Card Sorting Findings</span>
+
+      <div class="cs-cardsort">
+        <div class="cs-cardsort-col">
+          <div class="cs-cardsort-card">
+            <div class="lbl">Insight 1</div>
+            <p>Our concept is feasible, but users need to be able to view
+            information on each layer rather than just a direct map.</p>
+          </div>
+          <div class="cs-cardsort-card">
+            <div class="lbl">Insight 2</div>
+            <p>Users primarily need to understand the artwork, and they expect
+            digital souvenirs after viewing the exhibition.</p>
+          </div>
+        </div>
+        <div class="cs-shot">
+          <img src="casestudy-moma/workshop.png" alt="User group workshop session">
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ SOLUTION -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">Solution</h2>
+    <div class="cs-solution-grid">
+      <div class="cs-solution-col">
+        <img src="casestudy-moma/solution-home.png" alt="SeeMOMA home screen">
+        <img src="casestudy-moma/solution-space.png" alt="SeeMOMA personal art space screen">
+      </div>
+      <div class="cs-solution-col cs-solution-col--offset">
+        <img src="casestudy-moma/solution-maps.png" alt="SeeMOMA floor map screen">
+        <img src="casestudy-moma/solution-ar.png" alt="SeeMOMA AR navigation screen">
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ IMPACT -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">Impact</h2>
+    <div class="cs-impact-card">
+      <div class="cs-impact-item">
+        <span class="ic" aria-hidden="true">&#10003;</span>
+        <div>
+          <b>Iterative testing revealed strong user validation for the core
+          ideas.</b>
+        </div>
+      </div>
+      <div class="cs-impact-item">
+        <span class="ic" aria-hidden="true">&#10003;</span>
+        <div>
+          <b>Task Success Rate: 90%</b>
+          <p>Participants were able to complete key tasks (viewing explanations,
+          navigating to an artwork, saving a piece) with minimal errors and
+          reduced confusion.</p>
+        </div>
+      </div>
+      <div class="cs-impact-item">
+        <span class="ic" aria-hidden="true">&#10003;</span>
+        <div>
+          <b>Net Promoter Score (NPS): 9/10</b>
+          <p>Users rated this experience very highly; this indicates that if
+          such an app existed in real life, participants would use and recommend
+          it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ NEXT STEPS -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">Next steps</h2>
+
+    <div class="cs-next-card">
+      <h4>Test with a wider user base.</h4>
+      <p>User testing is ongoing. The model has not yet undergone extensive user
+      testing and mainly focuses on the functions used by art visitors. In the
+      future, more design solutions for art event organizers should be
+      developed.</p>
+    </div>
+    <div class="cs-next-card">
+      <h4>Explore integration with indoor positioning technologies.</h4>
+      <p>During user research, I realized visitors take various factors into
+      consideration while deciding which museum to visit. The goal is to create
+      a scalable system that can adapt to different museum contexts.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ FOOTER -->
+<div class="footer-outer">
+  <footer class="footer">
+    <span class="footer-copy">© 2026 Lia Gong</span>
+    <ul class="footer-nav">
+      <li><a href="landing.html#work">Work</a></li>
+      <li><a href="landing.html#about">About</a></li>
+      <li><a href="playground.html">Playground</a></li>
+    </ul>
+    <div class="footer-social">
+      <a href="mailto:hello@lia.design">↗ Email</a>
+      <a href="https://linkedin.com" target="_blank" rel="noopener">↗ LinkedIn</a>
+    </div>
+  </footer>
+</div>
+
+<!-- Cursor element -->
+<div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+
+<script>
+(function () {
+  /* ---- nav shrink on scroll ---- */
+  var nav = document.getElementById("nav");
+  window.addEventListener("scroll", function () {
+    nav.classList.toggle("scrolled", window.scrollY > 40);
+  }, { passive: true });
+
+  /* ---- custom cursor (blue dot), ported from landing.html ---- */
+  var cursorDot = document.getElementById("cursor-dot");
+  if (cursorDot && !('ontouchstart' in window)) {
+    document.addEventListener("mousemove", function (e) {
+      cursorDot.style.left = e.clientX + "px";
+      cursorDot.style.top  = e.clientY + "px";
+    });
+    document.addEventListener("mousedown", function () { document.body.classList.add("cur-click"); });
+    document.addEventListener("mouseup",   function () { document.body.classList.remove("cur-click"); });
+    document.querySelectorAll("a, button, .pill-btn").forEach(function (el) {
+      el.addEventListener("mouseenter", function () { document.body.classList.add("cur-hover"); });
+      el.addEventListener("mouseleave", function () { document.body.classList.remove("cur-hover"); });
+    });
+  } else if (cursorDot) {
+    cursorDot.style.display = "none";
+    document.body.style.cursor = "";
+  }
+
+  /* ---- nav sliding pill indicator ---- */
+  var navLinks  = document.querySelectorAll(".nav-links a");
+  var indicator = document.querySelector(".nav-indicator");
+  var navList   = document.querySelector(".nav-links");
+
+  function placeIndicator(el) {
+    if (!el || !indicator) return;
+    var lr = navList.getBoundingClientRect();
+    var er = el.getBoundingClientRect();
+    indicator.style.left  = (er.left - lr.left) + "px";
+    indicator.style.width = er.width + "px";
+    indicator.classList.add("visible");
+  }
+
+  navLinks.forEach(function (a) {
+    a.addEventListener("mouseenter", function () { placeIndicator(a); });
+  });
+  if (navList) {
+    navList.addEventListener("mouseleave", function () {
+      indicator.classList.remove("visible");
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

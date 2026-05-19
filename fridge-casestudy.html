@@ -1,0 +1,1200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FreshSense · Case Study · Lia Gong</title>
+  <meta name="description" content="FreshSense: a 0-to-1 smart fridge app that delivers real-time fridge visibility and builds user trust. Case study by Lia Gong.">
+
+  <!-- Design tokens — single source of truth at project root -->
+  <link rel="stylesheet" href="colors_and_type.css">
+
+  <style>
+/* ============================================================
+   CASE STUDY — page-scoped palette only.
+   ALL spacing / type / radii / line-height come from the design
+   system tokens in colors_and_type.css (--s-N, --fs-N, --r-N,
+   --lh-*, --tracking-*). The case study keeps its own light-mode
+   colour language (teal + navy on white); nothing else is bespoke.
+   ============================================================ */
+:root {
+  --cs-bg:        #FFFFFF;
+  --cs-teal:      #70B9BE;   /* primary accent */
+  --cs-teal-deep: #4DA1A7;
+  --cs-band:      #84C3C7;   /* full-bleed teal bands */
+  --cs-ink:       #364153;   /* dark headings / navy cards */
+  --cs-body:      #5D6676;   /* body copy */
+  --cs-muted:     #99A1AF;   /* eyebrows, captions */
+  --cs-card:      #F3FAFF;   /* light-blue cards */
+  --cs-line:      #E6EEF0;
+  --cs-red:       #D44C48;
+  --cs-green:     #42D8AC;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body {
+  background: var(--cs-bg);
+  color: var(--cs-body);
+  font-family: var(--sans);
+  font-size: var(--fs-md);
+  line-height: var(--lh-body);
+  letter-spacing: -0.005em;
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+::selection { background: var(--cs-teal); color: #fff; }
+
+/* ---------- layout primitives ---------- */
+.cs-wrap { max-width: 1120px; margin: 0 auto; padding: 0 var(--s-8); }
+.cs-section { padding: var(--s-9) 0; }
+.cs-band { width: 100%; }
+
+/* ---------- typography ---------- */
+.cs-h2 {
+  font-size: clamp(var(--fs-2xl), 3.4vw, var(--fs-3xl));
+  font-weight: 600;
+  color: var(--cs-teal);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
+  margin-bottom: var(--s-6);
+}
+.cs-h2--ink { color: var(--cs-ink); }
+.cs-h3 {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  color: var(--cs-ink);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
+}
+.cs-h4 {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  color: var(--cs-teal);
+  letter-spacing: -0.01em;
+}
+.cs-eyebrow {
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--cs-muted);
+}
+.cs-p { font-size: var(--fs-md); color: var(--cs-body); }
+.cs-p + .cs-p { margin-top: var(--s-4); }
+.cs-accent { color: var(--cs-teal); font-weight: 500; }
+.cs-strong { color: var(--cs-ink); font-weight: 600; }
+
+/* ============================================================
+   NAV — ported 1:1 from landing.html (scroll-shrink-to-pill +
+   sliding indicator). Only adaptation: link colour is dark at
+   the top (this is a light page) and turns white once the nav
+   collapses into the dark glass pill on scroll.
+   ============================================================ */
+.nav {
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 100%; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 48px;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition:
+    top 0.45s var(--ease-out),
+    max-width 0.45s var(--ease-out),
+    padding 0.45s var(--ease-out),
+    background 0.45s var(--ease-out),
+    border-radius 0.45s var(--ease-out),
+    border-color 0.45s var(--ease-out),
+    box-shadow 0.45s var(--ease-out),
+    gap 0.45s var(--ease-out);
+}
+.nav.scrolled {
+  top: 14px;
+  width: fit-content;
+  max-width: 560px;
+  padding: 9px 14px;
+  gap: 16px;
+  justify-content: flex-start;
+  background: var(--chrome-glass-strong);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-radius: 999px;
+  border-color: var(--tint-2);
+  box-shadow: 0 0 0 1px var(--tint-1), 0 8px 32px rgba(0,0,0,0.55);
+}
+.nav-logo {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; text-decoration: none;
+  width: 38px; height: 38px;
+  background: var(--btn-bg);
+  border-radius: 50%;
+  box-shadow: var(--shadow-pill);
+  position: relative; overflow: hidden;
+  transition: box-shadow var(--dur-base) var(--ease-out),
+              transform   var(--dur-fast) var(--ease-out);
+}
+.nav-logo::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 35%, var(--tint-2) 50%, transparent 65%);
+  transform: translateX(-100%);
+  transition: transform 0.55s var(--ease-out);
+  pointer-events: none;
+}
+.nav-logo:hover { box-shadow: var(--shadow-pill-glow); }
+.nav-logo:hover::before { transform: translateX(120%); }
+.nav-logo:active { transform: scale(0.97); }
+.nav-logo img { display: block; position: relative; z-index: 1; }
+.nav-divider {
+  width: 1px; height: 16px;
+  background: var(--tint-4);
+  flex-shrink: 0; margin: 0 8px;
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-out);
+}
+.nav.scrolled .nav-divider { opacity: 1; }
+.nav-right { display: flex; align-items: center; gap: 20px; }
+.nav-links { display: flex; gap: 4px; list-style: none; position: relative; }
+.nav-links li { position: relative; z-index: 1; }
+.nav-links a {
+  display: block; padding: 5px 10px;
+  font-size: 13.5px; font-weight: 500;
+  color: var(--cs-ink);                 /* dark on the light hero */
+  letter-spacing: -0.005em;
+  border-radius: 6px;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.nav.scrolled .nav-links a { color: #fff; }   /* white on the dark pill */
+.nav-links a:hover, .nav-links a.active { text-decoration: none; }
+.nav-indicator {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: rgba(54,65,83,0.08);          /* subtle dark on the light hero */
+  border-radius: 999px;
+  pointer-events: none; opacity: 0;
+  transition: left 0.28s cubic-bezier(0.22,1,0.36,1),
+              width 0.28s cubic-bezier(0.22,1,0.36,1),
+              opacity 0.18s;
+  z-index: 0;
+}
+.nav.scrolled .nav-indicator { background: var(--tint-2); }   /* white on the dark pill */
+.nav-indicator.visible { opacity: 1; }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.cs-hero {
+  padding: var(--s-10) 0 var(--s-9);
+}
+.cs-hero-phones {
+  display: flex; justify-content: center; align-items: flex-end; gap: var(--s-5);
+}
+.cs-hero-phones img {
+  width: 28%; max-width: 320px; border-radius: var(--r-lg);
+  box-shadow: 0 18px 40px -14px rgba(54,65,83,0.30);
+}
+.cs-hero-phones img:nth-child(2) { transform: translateY(-28px); }
+
+/* ============================================================
+   TITLE BAND  (teal full-bleed)
+   ============================================================ */
+.cs-title-band { background: var(--cs-band); padding: var(--s-8) 0; }
+.cs-psi {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  background: rgba(255,255,255,0.55);      /* light card so dark copy is legible */
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.cs-psi-col { padding: var(--s-7) var(--s-6); position: relative; }
+.cs-psi-col + .cs-psi-col::before {       /* short, soft gray-white divider */
+  content: ""; position: absolute;
+  left: 0; top: 50%; transform: translateY(-50%);
+  width: 1px; height: 56%;
+  background: rgba(255,255,255,0.65);
+}
+.cs-psi-col h5 {
+  font-family: var(--mono);
+  font-size: var(--fs-xs); font-weight: 500;
+  letter-spacing: var(--tracking-caps); text-transform: uppercase;
+  color: var(--cs-body);
+  margin-bottom: var(--s-4);
+}
+.cs-psi-col p { font-size: var(--fs-md); color: var(--cs-ink); line-height: var(--lh-body); }
+.cs-meta {
+  display: flex; flex-wrap: wrap;
+  justify-content: space-between; align-items: flex-start;
+  gap: var(--s-5) var(--s-6);
+  margin-top: var(--s-8);
+}
+.cs-meta-item {
+  display: flex; align-items: baseline; gap: var(--s-2);
+  font-size: var(--fs-sm);
+}
+.cs-meta-key { color: rgba(255,255,255,0.6); white-space: nowrap; }
+.cs-meta-mark { color: rgba(255,255,255,0.45); }
+.cs-meta-val { color: #fff; line-height: var(--lh-body); }
+
+/* ============================================================
+   CONTEXT  + bar chart
+   ============================================================ */
+.cs-context-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-8);
+  align-items: center;
+}
+.cs-chart-h { font-size: var(--fs-sm); color: var(--cs-body); margin-bottom: var(--s-5); }
+.cs-bar-row { margin-bottom: var(--s-4); }
+.cs-bar-track {
+  height: 40px; border-radius: var(--r-sm);
+  background: var(--cs-card);
+  position: relative; overflow: hidden;
+}
+.cs-bar-fill {
+  height: 100%; border-radius: var(--r-sm);
+  background: var(--cs-teal);
+  display: flex; align-items: center; justify-content: flex-end;
+  padding-right: var(--s-3);
+  color: #fff; font-weight: 600; font-size: var(--fs-sm);
+}
+.cs-bar-fill--sm { background: #aedfe0; color: var(--cs-ink); }
+.cs-bar-legend { display: flex; gap: var(--s-5); margin-top: var(--s-3); }
+.cs-bar-legend span { display: flex; align-items: center; gap: var(--s-2); font-size: var(--fs-xs); color: var(--cs-body); }
+.cs-dot { width: 12px; height: 12px; border-radius: var(--r-pill); }
+
+/* ============================================================
+   QUOTE BAND  (teal)
+   ============================================================ */
+.cs-quote-band { background: var(--cs-band); padding: var(--s-8) 0; text-align: center; }
+.cs-quote-band p {
+  color: #fff; font-size: clamp(var(--fs-xl), 2.6vw, var(--fs-3xl));
+  font-weight: 600; letter-spacing: var(--tracking-tight);
+}
+
+/* ============================================================
+   PERSONA + PAIN POINTS
+   ============================================================ */
+.cs-persona {
+  display: grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--s-6);
+  margin: var(--s-6) 0;
+}
+.cs-persona-card img { width: 100%; border-radius: var(--r-lg); }
+.cs-quote-box {
+  background: var(--cs-card);
+  border-radius: var(--r-lg);
+  padding: var(--s-6);
+  display: flex; flex-direction: column; justify-content: center;
+}
+.cs-quote-box .qmark { font-size: var(--fs-3xl); color: var(--cs-teal); line-height: 1; font-weight: 700; }
+.cs-quote-box p { font-size: var(--fs-md); font-style: italic; color: var(--cs-body); margin-top: var(--s-3); }
+
+.cs-cards-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-5); }
+.cs-paincard {
+  background: var(--cs-card);
+  border-radius: var(--r-md);
+  padding: var(--s-6);
+}
+.cs-paincard h5 {
+  font-family: var(--mono); font-size: var(--fs-xs); font-weight: 500;
+  letter-spacing: var(--tracking-caps); text-transform: uppercase;
+  color: var(--cs-teal); margin-bottom: var(--s-3);
+}
+.cs-paincard p { font-size: var(--fs-sm); color: var(--cs-body); line-height: var(--lh-body); }
+
+/* dark navy cards */
+.cs-darkcard {
+  background: var(--cs-ink);
+  border-radius: var(--r-md);
+  padding: var(--s-6);
+  color: #fff;
+}
+.cs-darkcard h5 {
+  font-family: var(--mono); font-size: var(--fs-xs); font-weight: 500;
+  letter-spacing: var(--tracking-caps); text-transform: uppercase;
+  color: var(--cs-teal); margin-bottom: var(--s-3);
+}
+.cs-darkcard p, .cs-darkcard li { font-size: var(--fs-sm); color: #d4dae3; line-height: var(--lh-body); }
+.cs-darkcard ul { padding-left: var(--s-5); }
+
+/* ============================================================
+   SOLUTION SNAPSHOT
+   ============================================================ */
+.cs-solution-cards { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); margin-top: var(--s-7); }
+.cs-solution-card {
+  background: var(--cs-card);
+  border-radius: var(--r-lg);
+  padding: var(--s-5);
+}
+.cs-solution-card img {
+  width: 100%; height: auto; display: block;
+  border-radius: var(--r-md); margin-bottom: var(--s-4);
+}
+.cs-solution-card h4 { margin-bottom: var(--s-2); }
+.cs-solution-card p { font-size: var(--fs-sm); }
+
+.cs-aaa { margin-top: var(--s-7); display: flex; flex-direction: column; gap: var(--s-5); }
+.cs-aaa-row { display: flex; align-items: center; gap: var(--s-5); }
+.cs-aaa-icon { width: 96px; height: 96px; flex-shrink: 0; object-fit: contain; }
+.cs-aaa-row p { font-size: var(--fs-md); }
+
+/* ============================================================
+   CHALLENGE BLOCKS
+   ============================================================ */
+.cs-challenge { margin-top: var(--s-8); }
+.cs-challenge-title {
+  font-size: var(--fs-xl); font-weight: 600; color: var(--cs-ink);
+  letter-spacing: var(--tracking-tight); margin-bottom: var(--s-6);
+}
+.cs-stage-label {
+  font-size: var(--fs-md); font-weight: 600; color: var(--cs-teal);
+  margin: var(--s-6) 0 var(--s-3);
+}
+
+/* hypothesis numbered row */
+.cs-hypo { display: flex; align-items: center; gap: var(--s-4); margin: var(--s-4) 0; }
+.cs-hypo-num {
+  width: 52px; height: 52px; flex-shrink: 0;
+  background: var(--cs-teal); color: #fff;
+  border-radius: var(--r-pill);
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--fs-xl); font-weight: 700;
+}
+.cs-hypo-box {
+  background: var(--cs-card);
+  border: 1px solid var(--cs-line);
+  border-radius: var(--r-md);
+  padding: var(--s-4) var(--s-5);
+  font-size: var(--fs-sm); color: var(--cs-body);
+}
+.cs-hypo-arrow { color: var(--cs-teal); font-size: var(--fs-xl); flex-shrink: 0; }
+
+/* insight stat cards */
+.cs-stats-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-5); margin: var(--s-5) 0; }
+.cs-stat {
+  background: var(--cs-card);
+  border-radius: var(--r-lg);
+  padding: var(--s-6) var(--s-5);
+  text-align: center;
+}
+.cs-stat .lbl {
+  font-family: var(--mono); font-size: var(--fs-xs); font-weight: 500;
+  letter-spacing: var(--tracking-caps); text-transform: uppercase;
+  color: var(--cs-muted);
+}
+.cs-stat .num {
+  font-size: var(--fs-3xl); font-weight: 700; color: var(--cs-teal);
+  letter-spacing: var(--tracking-tight); margin: var(--s-3) 0; line-height: 1;
+}
+.cs-stat .desc { font-size: var(--fs-sm); color: var(--cs-body); line-height: var(--lh-body); }
+
+/* insight + quote split */
+.cs-insight-quote {
+  display: grid; grid-template-columns: 0.85fr 0.4fr 1.35fr;
+  gap: 0;
+  align-items: stretch; margin: var(--s-6) 0;
+}
+.cs-insight-quote .cs-stat {
+  border-radius: var(--r-lg);
+  display: flex; flex-direction: column; justify-content: center;
+}
+/* dashed connector between the two boxes */
+.cs-iq-connector {
+  align-self: center;
+  display: flex; align-items: center;
+  padding: 0 var(--s-3);
+}
+.cs-iq-connector::before {
+  content: ""; flex: 1;
+  border-top: 2px dashed var(--cs-teal);
+  opacity: 0.55;
+}
+.cs-iq-connector::after {
+  content: ""; flex-shrink: 0;
+  width: 8px; height: 8px; border-radius: var(--r-pill);
+  background: var(--cs-teal);
+}
+.cs-iq-quote {
+  background: var(--cs-card);
+  border-radius: var(--r-lg);
+  padding: var(--s-7);
+  display: flex; flex-direction: column; justify-content: center;
+}
+.cs-iq-quote .qmark { font-size: var(--fs-2xl); color: var(--cs-teal); font-weight: 700; line-height: 1; }
+.cs-iq-quote p { font-style: italic; color: var(--cs-body); margin-top: var(--s-3); font-size: var(--fs-md); }
+
+/* insight / user-want pair */
+.cs-iuw { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); margin: var(--s-5) 0; }
+
+/* before / after phones */
+.cs-beforeafter { display: flex; justify-content: center; align-items: flex-start; gap: var(--s-9); margin: var(--s-6) 0; }
+.cs-ba-item { text-align: center; }
+.cs-ba-item img { width: auto; height: 430px; max-width: 100%; }
+.cs-ba-item span { display: block; margin-top: var(--s-3); font-size: var(--fs-sm); font-weight: 600; color: var(--cs-ink); }
+
+/* workshop */
+.cs-workshop { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-6); margin: var(--s-5) 0; }
+.cs-workshop img { width: 100%; border-radius: var(--r-lg); }
+.cs-workshop-quotes { display: flex; flex-direction: column; gap: var(--s-4); }
+.cs-mini-quote { background: var(--cs-card); border-radius: var(--r-md); padding: var(--s-5); }
+.cs-mini-quote .qmark { font-size: var(--fs-2xl); color: var(--cs-teal); font-weight: 700; line-height: 1; }
+.cs-mini-quote h6 {
+  font-family: var(--mono); font-size: var(--fs-xs); letter-spacing: var(--tracking-caps);
+  text-transform: uppercase; color: var(--cs-teal); font-weight: 500; margin-bottom: var(--s-1);
+}
+.cs-mini-quote p { font-size: var(--fs-sm); color: var(--cs-body); font-style: italic; }
+
+/* iteration note */
+.cs-iter { display: flex; align-items: flex-start; gap: var(--s-3); margin: var(--s-5) 0; }
+.cs-iter-chip {
+  width: 32px; height: 32px; flex-shrink: 0; border-radius: var(--r-sm);
+  background: var(--cs-teal);
+}
+.cs-iter p { font-size: var(--fs-sm); color: var(--cs-body); }
+
+/* ============================================================
+   PRODUCT DEMO
+   ============================================================ */
+.cs-feature {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-8);
+  align-items: center; margin-bottom: var(--s-9);
+}
+.cs-feature--flip .cs-feature-text { order: 2; }
+.cs-feature-phone { display: flex; justify-content: center; }
+.cs-feature-phone img,
+.cs-feature-phone video {
+  width: 300px;
+  display: block;
+}
+.cs-feature-text .kf {
+  font-family: var(--mono); font-size: var(--fs-xs); font-weight: 500;
+  letter-spacing: var(--tracking-caps); text-transform: uppercase;
+  color: var(--cs-muted); margin-bottom: var(--s-3);
+}
+.cs-feature-text h3 {
+  font-size: var(--fs-xl); font-weight: 600; color: var(--cs-teal);
+  letter-spacing: var(--tracking-tight); line-height: var(--lh-snug); margin-bottom: var(--s-5);
+}
+.cs-feature-text .ps {
+  font-size: var(--fs-sm); font-weight: 600; color: var(--cs-ink); margin-bottom: var(--s-2);
+}
+.cs-feature-text p { font-size: var(--fs-sm); }
+
+/* ============================================================
+   IMPACT  (dark band)
+   ============================================================ */
+.cs-impact { background: var(--cs-ink); padding: var(--s-9) 0 0; }
+.cs-impact .cs-h2 { color: var(--cs-teal); }
+.cs-impact-sub { color: #fff; font-weight: 600; font-size: var(--fs-lg); margin-bottom: var(--s-5); }
+.cs-impact-item { display: flex; gap: var(--s-3); margin-bottom: var(--s-5); }
+.cs-impact-item .ic { color: var(--cs-green); font-size: var(--fs-lg); flex-shrink: 0; }
+.cs-impact-item b { color: #fff; font-weight: 600; }
+.cs-impact-item p { color: #aab2bf; font-size: var(--fs-sm); }
+.cs-impact-chart {
+  display: flex; align-items: flex-end; justify-content: center; gap: var(--s-8);
+  margin-top: var(--s-8);
+}
+.cs-impact-bar { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.cs-impact-bar .cap { color: #aab2bf; font-size: var(--fs-sm); margin-bottom: var(--s-3); }
+.cs-impact-bar .col {
+  width: 120px; border-radius: var(--r-md) var(--r-md) 0 0;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: var(--s-5);
+  font-size: var(--fs-2xl); font-weight: 700; color: #fff;
+}
+.cs-impact-emoji { font-size: var(--fs-3xl); align-self: flex-end; margin-bottom: var(--s-6); }
+.cs-impact-emoji--cheer { animation: cs-cheer 1.3s ease-in-out infinite; }
+@keyframes cs-cheer {
+  0%, 100% { transform: translateY(0) rotate(-10deg); }
+  50%      { transform: translateY(-14px) rotate(10deg); }
+}
+
+/* ============================================================
+   REFLECTION
+   ============================================================ */
+.cs-reflection { background: var(--cs-card); padding: var(--s-9) 0; }
+.cs-reflection .cs-h2 { color: var(--cs-teal); }
+
+/* ============================================================
+   FOOTER — ported 1:1 from landing.html
+   ============================================================ */
+.footer-outer { background: transparent; position: relative; }
+.footer {
+  padding: 32px 48px 44px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 16px;
+  max-width: 1060px; margin: 0 auto; width: 100%;
+  position: relative; z-index: 1;
+}
+.footer-copy { font-size: 13px; color: var(--cs-muted); letter-spacing: -0.01em; }
+.footer-nav { display: flex; gap: 28px; list-style: none; }
+.footer-nav a { font-size: 13px; color: var(--cs-body); letter-spacing: -0.01em; transition: color var(--dur-fast) var(--ease-out); }
+.footer-nav a:hover { color: var(--cs-ink); }
+.footer-social { display: flex; gap: 20px; }
+.footer-social a { font-size: 13px; color: var(--cs-body); letter-spacing: -0.01em; text-decoration: none; transition: color var(--dur-fast) var(--ease-out); }
+.footer-social a:hover { color: var(--cs-ink); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 880px) {
+  .cs-wrap { padding: 0 var(--s-5); }
+  .cs-hero,
+  .cs-context-grid,
+  .cs-persona,
+  .cs-solution-cards,
+  .cs-iuw,
+  .cs-workshop,
+  .cs-feature { grid-template-columns: 1fr; gap: var(--s-6); }
+  .cs-cards-3, .cs-stats-3 { grid-template-columns: 1fr; }
+  .cs-psi { grid-template-columns: 1fr; }
+  .cs-psi-col + .cs-psi-col::before { display: none; }
+  .cs-psi-col + .cs-psi-col { border-top: 1px solid rgba(255,255,255,0.5); }
+  .cs-insight-quote { grid-template-columns: 1fr; gap: var(--s-4); }
+  .cs-iq-connector { display: none; }
+  .cs-beforeafter { gap: var(--s-6); }
+  .cs-feature--flip .cs-feature-text { order: 0; }
+  .nav { padding: 14px 20px; }
+  .nav.scrolled { top: 10px; max-width: calc(100% - 32px); padding: 9px 14px; }
+  .footer { flex-direction: column; text-align: center; gap: 18px; padding: 24px 24px 36px; }
+  .footer-social { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .cs-impact-emoji--cheer { animation: none; }
+}
+
+/* ============================================================
+   CUSTOM CURSOR  (blue dot, ported 1:1 from landing.html)
+   ============================================================ */
+body { cursor: none; }
+* { cursor: none !important; }
+.cursor-dot {
+  width: 20px; height: 20px;
+  background: var(--accent);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 10001;
+  transform: translate(-50%, -50%);
+  transition: width 0.18s var(--ease-out),
+              height 0.18s var(--ease-out),
+              opacity 0.18s;
+}
+body.cur-hover .cursor-dot { width: 30px; height: 30px; }
+body.cur-click .cursor-dot { width: 10px; height: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================ NAV -->
+<header class="nav" id="nav">
+  <a href="landing.html" class="nav-logo" aria-label="Lia Gong home">
+    <img src="logo1.svg" alt="Lia Gong" width="14" height="20">
+  </a>
+  <span class="nav-divider" aria-hidden="true"></span>
+  <div class="nav-right">
+    <ul class="nav-links">
+      <span class="nav-indicator" aria-hidden="true"></span>
+      <li><a href="landing.html#work">Work</a></li>
+      <li><a href="playground.html">Playground</a></li>
+      <li><a href="landing.html#about">About</a></li>
+      <li><a href="landing.html#contact">Contact</a></li>
+    </ul>
+  </div>
+</header>
+
+<!-- ============================================================ HERO -->
+<div class="cs-wrap">
+  <section class="cs-hero">
+    <div class="cs-hero-phones">
+      <img src="casestudy/imgIPhone11ProMax42.png" alt="FreshSense home screen">
+      <img src="casestudy/imgIPhone11ProMax44.png" alt="FreshSense AI analysis screen">
+      <img src="casestudy/imgIPhone11ProMax45.png" alt="FreshSense shopping list screen">
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ TITLE BAND -->
+<div class="cs-band cs-title-band">
+  <div class="cs-wrap">
+
+    <div class="cs-psi">
+      <div class="cs-psi-col">
+        <h5>Problem</h5>
+        <p>Users often don't know what's left in their refrigerator, which
+        can lead to overbuying, longer shopping times, and waste of money
+        and food.</p>
+      </div>
+      <div class="cs-psi-col">
+        <h5>Solution</h5>
+        <p>I designed a b2c app that provides real-time refrigerator
+        visibility and AI-driven shopping suggestions.</p>
+      </div>
+      <div class="cs-psi-col">
+        <h5>Impact</h5>
+        <p>Users were impressed. SUS rating improved by 17 points and user
+        satisfaction reached 88%.</p>
+      </div>
+    </div>
+
+    <div class="cs-meta">
+      <div class="cs-meta-item">
+        <span class="cs-meta-key"><span class="cs-meta-mark" aria-hidden="true">&#10022;</span> Duration:</span>
+        <span class="cs-meta-val">2 Months</span>
+      </div>
+      <div class="cs-meta-item">
+        <span class="cs-meta-key"><span class="cs-meta-mark" aria-hidden="true">&#10022;</span> Role:</span>
+        <span class="cs-meta-val">Product Design<br>Research<br>Defining Problem<br>Feature Scoping</span>
+      </div>
+      <div class="cs-meta-item">
+        <span class="cs-meta-key"><span class="cs-meta-mark" aria-hidden="true">&#10022;</span> Type:</span>
+        <span class="cs-meta-val">Personal project</span>
+      </div>
+      <div class="cs-meta-item">
+        <span class="cs-meta-key"><span class="cs-meta-mark" aria-hidden="true">&#10022;</span> Tools:</span>
+        <span class="cs-meta-val">Figma</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ CONTEXT -->
+<div class="cs-wrap">
+  <section class="cs-section">
+    <div class="cs-context-grid">
+      <div>
+        <h2 class="cs-h2">Context</h2>
+        <p class="cs-p">Nearly <span class="cs-accent">40%</span> of food
+        waste occurs in the refrigerator, mainly because we forget what food
+        is already in it.</p>
+        <p class="cs-p">For workers, this waste adds up to a considerable
+        amount: an average of <span class="cs-accent">$728 per person per
+        year</span>, or <span class="cs-accent">$2,900 per household per
+        year</span>.</p>
+      </div>
+      <div>
+        <div class="cs-chart-h">Money wasted per year</div>
+        <div class="cs-bar-row">
+          <div class="cs-bar-track">
+            <div class="cs-bar-fill" style="width:100%;">2900$</div>
+          </div>
+        </div>
+        <div class="cs-bar-row">
+          <div class="cs-bar-track">
+            <div class="cs-bar-fill cs-bar-fill--sm" style="width:34%;">728$</div>
+          </div>
+        </div>
+        <div class="cs-bar-legend">
+          <span><i class="cs-dot" style="background:var(--cs-teal);"></i>Household</span>
+          <span><i class="cs-dot" style="background:#aedfe0;"></i>Individual Worker</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ QUOTE BAND -->
+<div class="cs-band cs-quote-band">
+  <div class="cs-wrap">
+    <p>But what does this actually look like in everyday life?</p>
+  </div>
+</div>
+
+<!-- ============================================================ PAIN POINTS -->
+<div class="cs-wrap">
+  <section class="cs-section">
+    <h2 class="cs-h2">Common User Pain Points</h2>
+    <p class="cs-p">Let's meet one of our target users. Wayne is a people
+    manager whose <span class="cs-accent">goal is to shop in under 40
+    minutes</span>, knowing what's in the fridge and how much to buy. But
+    can he answer these questions confidently and efficiently?</p>
+
+    <div class="cs-persona">
+      <div class="cs-persona-card">
+        <img src="casestudy/imgImage398.png" alt="Wayne, target user persona">
+      </div>
+      <div class="cs-quote-box">
+        <div class="qmark">&ldquo;</div>
+        <p>I don't know how much eggs and vegetables to buy, so I often buy
+        too much, which can result in me wasting up to $100 a month. I use
+        Apple Notes to keep track of my inventory, but I often forget.</p>
+      </div>
+    </div>
+
+    <p class="cs-p">The answer is no, and <span class="cs-accent">his
+    current approach is not ideal.</span></p>
+    <p class="cs-p">Unfortunately, Wayne is not alone. After interviewing
+    <span class="cs-strong">15 workers</span> from different industries, we
+    found they all face the following common pain points:</p>
+
+    <div class="cs-cards-3" style="margin-top:var(--s-6);">
+      <div class="cs-paincard">
+        <h5>Pain point 1</h5>
+        <p>Users often forget what's in their refrigerator, and might forget
+        to buy some items.</p>
+      </div>
+      <div class="cs-paincard">
+        <h5>Pain point 2</h5>
+        <p>Users frequently buy too many items, resulting in food and money
+        waste.</p>
+      </div>
+      <div class="cs-paincard">
+        <h5>Pain point 3</h5>
+        <p>Users often have minor arguments with their partners about
+        inventory, which increases shopping time.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ PRIORITIZING -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">Prioritizing the Pain Points</h2>
+    <p class="cs-p">After identifying the common challenges from user
+    interviews, I mapped each user's full grocery shopping step to
+    understand where the most confusing and time-consuming decision-making
+    stages were.</p>
+
+    <p class="cs-p" style="margin-top:var(--s-5);"><span class="cs-eyebrow">User
+    story map</span></p>
+    <img src="casestudy/imgImage1.png" alt="User story map"
+         style="width:100%; border-radius:var(--r-md); margin-top:var(--s-3);">
+
+    <p class="cs-p" style="margin-top:var(--s-6);"><span class="cs-strong">A clear
+    pattern emerged:</span> The longest decision-making stage for users is
+    when they arrive at the fresh food section: <span
+    class="cs-accent">the eggs, milk, and vegetable section.</span></p>
+    <p class="cs-p">Users hesitate and spend more time making decisions here
+    for the following reasons:</p>
+
+    <div class="cs-cards-3" style="margin-top:var(--s-5);">
+      <div class="cs-darkcard">
+        <p>Fresh ingredients spoil easily, and users worry about buying too
+        much.</p>
+      </div>
+      <div class="cs-darkcard">
+        <p>These foods are in high demand daily, and users worry about
+        buying too little.</p>
+      </div>
+      <div class="cs-darkcard">
+        <p>Users are unsure how much food they have left at home.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ SOLUTION SNAPSHOT -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">Solution</h2>
+    <p class="cs-p">To help users solve their primary problem, I started
+    with the categories that create the most confusion and waste during
+    grocery decisions: <span class="cs-strong">milk, eggs, and
+    produce.</span></p>
+    <p class="cs-p"><span class="cs-accent">I designed FreshSense, an
+    AI-powered smart fridge app that works together with a small third-party
+    sensor module.</span></p>
+    <p class="cs-p">I assumed that our sensor could reliably detect these
+    items first. If this approach proved successful, the system could then
+    scale to support additional food categories.</p>
+
+    <div class="cs-solution-cards">
+      <div class="cs-solution-card">
+        <img src="casestudy/imgImage.png" alt="FreshSense sensor module">
+        <h4 class="cs-h4">Sensor</h4>
+        <p class="cs-p">This sensor can be placed in any fridge, in fixed
+        areas for daily, and produce.</p>
+      </div>
+      <div class="cs-solution-card">
+        <img src="casestudy/imgImage2.png" alt="FreshSense app in fridge">
+        <h4 class="cs-h4">FreshSense app</h4>
+        <p class="cs-p">It automatically detects quantity, shelf life, and
+        consumption patterns, and sends real-time data to the FreshSense
+        app.</p>
+      </div>
+    </div>
+
+    <div class="cs-aaa">
+      <div class="cs-aaa-row">
+        <img class="cs-aaa-icon" src="casestudy/imgImage406.png" alt="">
+        <p class="cs-p">With the help of an AI-powered FreshSense app, users
+        can <span class="cs-accent">ASK</span> how many eggs, milk, and
+        vegetables are in their fridge.</p>
+      </div>
+      <div class="cs-aaa-row">
+        <img class="cs-aaa-icon" src="casestudy/imgImage407.png" alt="">
+        <p class="cs-p">They could get <span class="cs-accent">ANSWERS</span>
+        quickly, know which is about to expire or has already expired, and
+        can view it together with their partner.</p>
+      </div>
+      <div class="cs-aaa-row">
+        <img class="cs-aaa-icon" src="casestudy/imgImage408.png" alt="">
+        <p class="cs-p">At last, they could actually take <span
+        class="cs-accent">ACTION</span> on those insights.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ CHALLENGE TO FINAL DESIGN -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">From Challenge to Final Design</h2>
+
+    <!-- CHALLENGE 1 -->
+    <div class="cs-challenge">
+      <div class="cs-challenge-title">Challenge 1: Manual Input Seemed Feasible Until It Failed</div>
+
+      <div class="cs-stage-label">Learning: Turning Pain Point Into a Feature Hypothesis</div>
+      <div class="cs-hypo">
+        <div class="cs-hypo-num">1</div>
+        <div class="cs-hypo-box">Pain Point: Users often forget what's in
+        their refrigerator</div>
+        <div class="cs-hypo-arrow">&rarr;</div>
+        <div class="cs-hypo-box">Feature Hypothesis: Users can manually enter
+        items and view a refrigerator overview.</div>
+      </div>
+
+      <div class="cs-stage-label">Testing: Early success, but subsequent failure</div>
+      <p class="cs-p"><span class="cs-strong">Round 1 testing (10 tech
+      users)</span></p>
+      <p class="cs-p">I tested a rapidly developed AI-assisted prototype that
+      relied on manual input (photo upload / receipt / voice).</p>
+      <p class="cs-p"><span class="cs-strong">Results:</span></p>
+
+      <div class="cs-stats-3">
+        <div class="cs-stat">
+          <div class="lbl">Insight 1</div>
+          <div class="num">70/100</div>
+          <div class="desc">Average usability test score: 70/100</div>
+        </div>
+        <div class="cs-stat">
+          <div class="lbl">Insight 2</div>
+          <div class="num">75%</div>
+          <div class="desc">of users found the feature &ldquo;effective and reasonable&rdquo;</div>
+        </div>
+        <div class="cs-stat">
+          <div class="lbl">Insight 3</div>
+          <div class="num">20%</div>
+          <div class="desc">of users found the manual operation burdensome</div>
+        </div>
+      </div>
+
+      <p class="cs-p">The feedback at this stage was positive, but there may
+      be bias due to all participants being tech workers.</p>
+      <p class="cs-p"><span class="cs-accent">So I conducted round 2 testing
+      (15 diverse users across professions)</span><br>When testing with
+      broader user groups, the picture changed dramatically:</p>
+
+      <div class="cs-insight-quote">
+        <div class="cs-stat">
+          <div class="lbl">Insight</div>
+          <div class="num">80%</div>
+          <div class="desc">of users said manual input was not realistic or
+          sustainable</div>
+        </div>
+        <div class="cs-iq-connector" aria-hidden="true"></div>
+        <div class="cs-iq-quote">
+          <div class="qmark">&ldquo;</div>
+          <p>Users described it as &ldquo;too much work,&rdquo; &ldquo;not
+          maintainable,&rdquo; and &ldquo;extra mental load&rdquo;</p>
+        </div>
+      </div>
+
+      <div class="cs-stage-label">Define: Shift to a Sensor-Supported Automatic Input System</div>
+      <p class="cs-p">The insights were clear:</p>
+      <div class="cs-iuw">
+        <div class="cs-darkcard">
+          <h5>Insight</h5>
+          <p>Manual input failed both in adoption and long-term
+          reliability.</p>
+        </div>
+        <div class="cs-darkcard">
+          <h5>User Want</h5>
+          <ul>
+            <li>Real-time tracking</li>
+            <li>Zero manual effort</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="cs-stage-label">Iteration</div>
+      <div class="cs-iter">
+        <div class="cs-iter-chip"></div>
+        <p>I switched to a fixed-area sensor system that automatically tracks
+        milk, eggs, and fresh produce.</p>
+      </div>
+      <div class="cs-beforeafter">
+        <div class="cs-ba-item">
+          <img src="casestudy/imgImage390.png" alt="Before: manual input screen">
+          <span>Before</span>
+        </div>
+        <div class="cs-ba-item">
+          <img src="casestudy/imgImage391.png" alt="After: sensor tracking screen">
+          <span>After</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHALLENGE 2 -->
+    <div class="cs-challenge">
+      <div class="cs-challenge-title">Challenge 2: Users Didn't Trust AI Recommendations</div>
+
+      <div class="cs-stage-label">Learning: What users really need is help answering the question, &ldquo;How much should I buy?&rdquo;</div>
+      <p class="cs-p">The pain point of not knowing how much to buy was
+      repeatedly mentioned in the interview. I broke down this pain point
+      into specific directions of AI recommendation.</p>
+      <div class="cs-hypo">
+        <div class="cs-hypo-num">2</div>
+        <div class="cs-hypo-box">Pain Point: Users don't know how many items
+        to buy.</div>
+        <div class="cs-hypo-arrow">&rarr;</div>
+        <div class="cs-hypo-box">Feature Hypothesis: AI-powered prediction
+        list.</div>
+      </div>
+
+      <div class="cs-stage-label">Testing: The Direction Was Right, but Trust Was Missing</div>
+      <p class="cs-p">I tested the first MVP testing (10 tech users).</p>
+      <p class="cs-p">The tests confirmed the necessity of AI-generated
+      shopping recommendations. However, users raised questions:</p>
+
+      <div class="cs-insight-quote">
+        <div class="cs-stat">
+          <div class="lbl">Insight</div>
+          <div class="num">85%</div>
+          <div class="desc">of users believe that the AI prediction logic is
+          unreliable</div>
+        </div>
+        <div class="cs-iq-connector" aria-hidden="true"></div>
+        <div class="cs-iq-quote">
+          <div class="qmark">&ldquo;</div>
+          <p>How does the AI know what I need to buy?</p>
+        </div>
+      </div>
+
+      <p class="cs-p">To deepen this insight, I ran a follow-up workshop with
+      users who had strong grocery-planning pain points. They shared a
+      critical condition:</p>
+
+      <div class="cs-workshop">
+        <img src="casestudy/imgImage3.png" alt="Follow-up workshop with users">
+        <div class="cs-workshop-quotes">
+          <div class="cs-mini-quote">
+            <div class="qmark">&ldquo;</div>
+            <p>I'm willing to provide simple inputs, like recipes, if it helps
+            the AI make sense.</p>
+          </div>
+          <div class="cs-mini-quote">
+            <h6>User Need</h6>
+            <p>Predictions based on their actual meal plans, not generic AI
+            guesses.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="cs-stage-label">Define: I designed a hybrid artificial intelligence model</div>
+      <p class="cs-p">The hybrid AI model that combines:</p>
+      <div class="cs-cards-3" style="margin-top:var(--s-5);">
+        <div class="cs-darkcard"><p>Actual consumption data</p></div>
+        <div class="cs-darkcard"><p>Household size</p></div>
+        <div class="cs-darkcard"><p>User-provided recipes</p></div>
+      </div>
+
+      <div class="cs-stage-label">Iteration</div>
+      <div class="cs-iter">
+        <div class="cs-iter-chip"></div>
+        <p>I added: predictions based on actual consumption data, household
+        size, and user-provided recipes.</p>
+      </div>
+      <div class="cs-beforeafter">
+        <div class="cs-ba-item">
+          <img src="casestudy/imgImage392.png" alt="AI prediction iteration, before">
+          <span>Before</span>
+        </div>
+        <div class="cs-ba-item">
+          <img src="casestudy/imgImage10.png" alt="AI prediction iteration, after">
+          <span>After</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ PRODUCT DEMO -->
+<div class="cs-wrap">
+  <section class="cs-section" style="padding-top:0;">
+    <h2 class="cs-h2">Product Demo</h2>
+
+    <div class="cs-feature">
+      <div class="cs-feature-phone">
+        <video poster="casestudy/imgImage390.png" autoplay muted loop playsinline>
+          <source src="casestudy/demo-1.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="cs-feature-text">
+        <div class="kf">Key Feature 1</div>
+        <h3>Sensors automatically track fresh-food status &amp; inventory</h3>
+        <p class="ps">Problem Solving:</p>
+        <p class="cs-p">This solves the problem of users not knowing the
+        refrigerator's inventory and frequently buying too much, saving
+        users money.</p>
+      </div>
+    </div>
+
+    <div class="cs-feature cs-feature--flip">
+      <div class="cs-feature-text">
+        <div class="kf">Key Feature 2</div>
+        <h3>AI personalized prediction based on recipes</h3>
+        <p class="ps">Problem Solving:</p>
+        <p class="cs-p">This solves the problem of users not knowing how much
+        to buy, saving them decision-making time and reducing food waste.</p>
+      </div>
+      <div class="cs-feature-phone">
+        <video poster="casestudy/imgImage391.png" autoplay muted loop playsinline>
+          <source src="casestudy/demo-2.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+
+    <div class="cs-feature">
+      <div class="cs-feature-phone">
+        <video poster="casestudy/imgImage392.png" autoplay muted loop playsinline>
+          <source src="casestudy/demo-3.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="cs-feature-text">
+        <div class="kf">Key Feature 3</div>
+        <h3>Shared fridge visibility with family reminders</h3>
+        <p class="ps">Problem Solving:</p>
+        <p class="cs-p">This feature helps partners reduce misunderstandings
+        and save time by providing real-time updates and automatic reminders
+        through shared refrigerators.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ IMPACT -->
+<div class="cs-band cs-impact">
+  <div class="cs-wrap">
+    <h2 class="cs-h2">Impact</h2>
+    <div class="cs-impact-sub">Measurable Improvements</div>
+
+    <div class="cs-impact-item">
+      <span class="ic">&#x2197;</span>
+      <div>
+        <b>SUS Score improved 17 points</b>
+        <p>Before: 70 &nbsp;·&nbsp; After: 87. This indicates the product
+        improved from &ldquo;Usable&rdquo; to &ldquo;Excellent&rdquo;.</p>
+      </div>
+    </div>
+    <div class="cs-impact-item">
+      <span class="ic">&#x2197;</span>
+      <div>
+        <b>User Satisfaction: 88%</b>
+        <p>Our user satisfaction rate ranged from 60% to 88%.</p>
+      </div>
+    </div>
+
+    <div class="cs-impact-chart">
+      <div class="cs-impact-emoji">&#x1F914;</div>
+      <div class="cs-impact-bar">
+        <div class="cap">Before</div>
+        <div class="col" style="height:272px; background:var(--cs-red);">6/10</div>
+      </div>
+      <div class="cs-impact-bar">
+        <div class="cap">After</div>
+        <div class="col" style="height:400px; background:var(--cs-green);">8.8/10</div>
+      </div>
+      <div class="cs-impact-emoji cs-impact-emoji--cheer" role="img" aria-label="celebration">&#x1F389;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ REFLECTION -->
+<div class="cs-band cs-reflection">
+  <div class="cs-wrap">
+    <h2 class="cs-h2">Reflection &amp; Next Step</h2>
+    <p class="cs-p">I learned: this process taught me that <span
+    class="cs-accent">building trust is more important than adding more
+    features.</span> Design with empathy, build with purpose.</p>
+    <p class="cs-p">Next, I plan to conduct broader usability testing to
+    refine the system further, deepen our understanding of real-world
+    behaviors over time, and ensure the product continues to feel
+    human-centered and trustworthy.</p>
+    <p class="cs-p">With the core MVP validated, the next step is to expand
+    beyond eggs, milk, and vegetables to support a wider range of household
+    food categories.</p>
+  </div>
+</div>
+
+<!-- ============================================================ FOOTER -->
+<div class="footer-outer">
+  <footer class="footer">
+    <span class="footer-copy">© 2026 Lia Gong</span>
+    <ul class="footer-nav">
+      <li><a href="landing.html#work">Work</a></li>
+      <li><a href="landing.html#about">About</a></li>
+      <li><a href="playground.html">Playground</a></li>
+    </ul>
+    <div class="footer-social">
+      <a href="mailto:hello@lia.design">↗ Email</a>
+      <a href="https://linkedin.com" target="_blank" rel="noopener">↗ LinkedIn</a>
+    </div>
+  </footer>
+</div>
+
+<!-- Cursor element -->
+<div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+
+<script>
+(function () {
+  /* ---- nav shrink on scroll ---- */
+  var nav = document.getElementById("nav");
+  window.addEventListener("scroll", function () {
+    nav.classList.toggle("scrolled", window.scrollY > 40);
+  }, { passive: true });
+
+  /* ---- custom cursor (blue dot), ported from landing.html ---- */
+  var cursorDot = document.getElementById("cursor-dot");
+  if (cursorDot && !('ontouchstart' in window)) {
+    document.addEventListener("mousemove", function (e) {
+      cursorDot.style.left = e.clientX + "px";
+      cursorDot.style.top  = e.clientY + "px";
+    });
+    document.addEventListener("mousedown", function () { document.body.classList.add("cur-click"); });
+    document.addEventListener("mouseup",   function () { document.body.classList.remove("cur-click"); });
+    document.querySelectorAll("a, button, .pill-btn").forEach(function (el) {
+      el.addEventListener("mouseenter", function () { document.body.classList.add("cur-hover"); });
+      el.addEventListener("mouseleave", function () { document.body.classList.remove("cur-hover"); });
+    });
+  } else if (cursorDot) {
+    cursorDot.style.display = "none";
+    document.body.style.cursor = "";
+  }
+
+  /* ---- nav sliding pill indicator ---- */
+  var navLinks  = document.querySelectorAll(".nav-links a");
+  var indicator = document.querySelector(".nav-indicator");
+  var navList   = document.querySelector(".nav-links");
+
+  function placeIndicator(el) {
+    if (!el || !indicator) return;
+    var lr = navList.getBoundingClientRect();
+    var er = el.getBoundingClientRect();
+    indicator.style.left  = (er.left - lr.left) + "px";
+    indicator.style.width = er.width + "px";
+    indicator.classList.add("visible");
+  }
+
+  navLinks.forEach(function (a) {
+    a.addEventListener("mouseenter", function () { placeIndicator(a); });
+  });
+  if (navList) {
+    navList.addEventListener("mouseleave", function () {
+      indicator.classList.remove("visible");
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

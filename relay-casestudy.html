@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Relay — Case study</title>
+  <link rel="stylesheet" href="colors_and_type.css">
+  <style>
+    body {
+      margin: 0; min-height: 100vh;
+      background: var(--paper); color: var(--ink);
+      font-family: var(--sans);
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 48px 24px;
+    }
+    .rc-wrap { max-width: 520px; }
+    .rc-eyebrow {
+      font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+      letter-spacing: 0.16em; color: var(--accent); margin-bottom: 18px;
+    }
+    .rc-title {
+      font-family: var(--sans); font-weight: 600;
+      font-size: clamp(36px, 6vw, 56px); letter-spacing: -0.03em;
+      line-height: 1.05; margin: 0 0 16px;
+    }
+    .rc-sub {
+      font-size: 16px; line-height: 1.7; color: var(--ink-3);
+      margin: 0 0 32px;
+    }
+    .rc-back {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 14px; font-weight: 600; color: var(--ink);
+      text-decoration: none; padding: 11px 22px; border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      transition: color var(--dur-fast) var(--ease-out),
+                  border-color var(--dur-fast) var(--ease-out);
+    }
+    .rc-back:hover { color: var(--accent); border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main class="rc-wrap">
+    <div class="rc-eyebrow">Relay</div>
+    <h1 class="rc-title">Case study coming soon</h1>
+    <p class="rc-sub">The Relay case study is being written up. Check back shortly, or reach out if you'd like a walkthrough.</p>
+    <a class="rc-back" href="index.html">← Back to work</a>
+  </main>
+</body>
+</html>
